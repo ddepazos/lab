@@ -159,3 +159,47 @@ Los tres diagramas —arquitectura modular, mapa de navegación y flujo de edici
 - **Python (NumPy, SciPy, Shapely, Pillow)** solo para experimentación geométrica, procesamiento por lotes o servicios futuros. No es necesario un backend para el MVP.
 
 **Estado:** decisiones propuestas y diagramas de diseño; ninguna de estas librerías nuevas está integrada por el hecho de figurar aquí.
+
+## Biblioteca de módulos — referencia visual moza yk.design (octubre 2026)
+
+La referencia compartida muestra un catálogo de teselas geométricas seleccionables (cuadrados, círculos, triángulos, anillos, cruces, pétalos, rosetas, diagonales, dameros), mezcla de formas y reproducción por fotogramas. Adoptar el principio de **variedad combinatoria**, sin replicar la interfaz ni los diseños de terceros.
+
+### Familias propuestas
+
+1. **Geométricos básicos:** cuadrado, disco, triángulo, semicírculo, cuarto de círculo, anillo, barra, diagonal.
+2. **Teselaciones:** Truchet, damero, zigzag, escaleras, cuadrantes y continuidad de bordes.
+3. **Radiales:** cruces, estrellas, pétalos, rosetas, anillos concéntricos, simetrías de orden N.
+4. **Orgánicos:** células, manchas, curvas Bézier, arcos fluidos y variantes estocásticas.
+5. **Tipográficos:** glifos abstractos, trazos y módulos basados en letras (fase posterior).
+6. **Personalizados:** importar SVG, normalizar viewBox y usar como tesela, con validación.
+
+### Controles de biblioteca y composición
+
+- Galería con miniaturas SVG vectoriales, búsqueda, filtros por familia, favoritos y selección múltiple.
+- Mezcla de módulos con pesos configurables (0–100 %), semilla reproducible, aleatorización y presets.
+- Matriz de filas/columnas, tamaño de celda, márgenes, medianiles, alineación, rotación (0/90/180/270 o libre), reflejo, escala, opacidad y paleta.
+- Reglas de vecindad para conectar trazos entre celdas, repetición por simetría y bloqueo de teselas.
+- Gestalt paramétrica: proximidad (agrupamiento/espaciado), semejanza (forma/color/tamaño), continuidad (conectores entre celdas) y cierre (contornos incompletos).
+- Controles de interacción: generar, regenerar con semilla, guardar preset, editar módulo individual, deshacer/rehacer, exportar SVG/PNG y animar variaciones.
+
+### Modelo sugerido
+
+```ts
+type ModuleDefinition = {
+  id: string;
+  family: 'basic' | 'tessellation' | 'radial' | 'organic' | 'typographic' | 'custom';
+  label: string;
+  geometry: string; // SVG path or normalized geometry reference
+  connectionPoints?: Array<{ edge: 'top' | 'right' | 'bottom' | 'left'; offset: number }>;
+  allowedRotations: number[];
+  mirrorable: boolean;
+};
+
+type ModuleMix = {
+  moduleId: string;
+  weight: number;
+  enabled: boolean;
+};
+```
+
+**Implementación:** construir un registro declarativo de módulos y miniaturas desde una sola definición geométrica; el generador y el exportador deben reutilizar esa geometría para evitar divergencias entre vista previa y SVG. La galería y sus controles se diseñarán primero en Figma.
