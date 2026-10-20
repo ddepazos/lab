@@ -14,13 +14,13 @@ export const initialDocument:StudioDocument={seed:426,columns:8,rows:8,density:8
 const makeLayers=()=>[createPatternLayer('pattern-1',initialDocument)];
 export const useStudio=create<StudioState>((set)=>({
  doc:{...initialDocument},layers:makeLayers(),selectedLayer:'pattern-1',
- selectLayer:(id)=>set(s=>({selectedLayer:id,doc:s.layers.find(l=>l.id===id)?.pattern??s.doc})),
- addLayer:(type)=>set(s=>{const id=type+'-'+Date.now();const l=type==='text'?createTextLayer(id):createPatternLayer(id,s.doc);return {layers:[...s.layers,l],selectedLayer:id};}),
+ selectLayer:(id)=>set(s=>{const layer=s.layers.find(l=>l.id===id);return layer?{selectedLayer:id,doc:layer.pattern?{...layer.pattern,background:s.doc.background}:s.doc}:{};}),
+ addLayer:(type)=>set(s=>{const id=type+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);const l=type==='text'?createTextLayer(id):createPatternLayer(id,s.doc);return {layers:[...s.layers,l],selectedLayer:id};}),
  updateLayer:(id,changes)=>set(s=>({layers:s.layers.map(l=>l.id===id?{...l,...changes}:l)})),
  moveLayer:(id,direction)=>set(s=>{const layers=[...s.layers],i=layers.findIndex(l=>l.id===id),j=i+direction;if(i<0||j<0||j>=layers.length)return {};[layers[i],layers[j]]=[layers[j],layers[i]];return {layers};}),
  deleteLayer:(id)=>set(s=>{if(s.layers.length<2)return {};const layers=s.layers.filter(l=>l.id!==id);return {layers,selectedLayer:s.selectedLayer===id?layers[layers.length-1].id:s.selectedLayer};}),
- set:(key,value)=>set(s=>({doc:{...s.doc,[key]:value},layers:s.layers.map(l=>l.id===s.selectedLayer&&l.type==='pattern'&&!l.locked?{...l,pattern:{...l.pattern!,[key]:value}}:l)})),
- toggleModule:(id)=>set(s=>{const active=s.doc.active.includes(id)?s.doc.active.filter(x=>x!==id):[...s.doc.active,id];return {doc:{...s.doc,active},layers:s.layers.map(l=>l.id===s.selectedLayer&&l.type==='pattern'&&!l.locked?{...l,pattern:{...l.pattern!,active}}:l)};}),
- newSeed:()=>set(s=>{const seed=(s.doc.seed%999999)+1;return {doc:{...s.doc,seed},layers:s.layers.map(l=>l.id===s.selectedLayer&&l.type==='pattern'&&!l.locked?{...l,pattern:{...l.pattern!,seed}}:l)};}),
+ set:(key,value)=>set(s=>{if(key==='background')return {doc:{...s.doc,background:value}};const selected=s.layers.find(l=>l.id===s.selectedLayer);if(!selected||selected.type!=='pattern'||selected.locked)return {};return {doc:{...s.doc,[key]:value},layers:s.layers.map(l=>l.id===s.selectedLayer?{...l,pattern:{...l.pattern!,[key]:value}}:l)};}),
+ toggleModule:(id)=>set(s=>{const selected=s.layers.find(l=>l.id===s.selectedLayer);if(!selected||selected.type!=='pattern'||selected.locked)return {};const active=s.doc.active.includes(id)?s.doc.active.filter(x=>x!==id):[...s.doc.active,id];return {doc:{...s.doc,active},layers:s.layers.map(l=>l.id===s.selectedLayer&&l.type==='pattern'&&!l.locked?{...l,pattern:{...l.pattern!,active}}:l)};}),
+ newSeed:()=>set(s=>{const selected=s.layers.find(l=>l.id===s.selectedLayer);if(!selected||selected.type!=='pattern'||selected.locked)return {};const seed=(s.doc.seed%999999)+1;return {doc:{...s.doc,seed},layers:s.layers.map(l=>l.id===s.selectedLayer&&l.type==='pattern'&&!l.locked?{...l,pattern:{...l.pattern!,seed}}:l)};}),
  reset:()=>set({doc:{...initialDocument,active:[...initialDocument.active]},layers:makeLayers(),selectedLayer:'pattern-1'})
 }));
