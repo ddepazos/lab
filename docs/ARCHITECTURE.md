@@ -144,3 +144,18 @@ Acción UI → Comando validado → DocumentModel/Store
 - `npm run build`, pruebas unitarias y pruebas E2E pasan antes de integrar a `main`.
 - GitHub Pages continúa publicando una versión operativa.
 - Ninguna integración IA/Hyper3D en este alcance.
+
+## Diagramas editables en FigJam
+
+Los tres diagramas —arquitectura modular, mapa de navegación y flujo de edición/exportación— están en el tablero [LAB · Arquitectura y flujos](https://www.figma.com/board/PiiaIoGxas8qoTmspXP7SB).
+
+## Decisión tecnológica preliminar
+
+- **React + TypeScript + Vite** para la interfaz; **Zustand** para estado y comandos de historial.
+- **Fabric.js** como primer candidato para edición 2D y salida SVG; evaluar **Konva** en una prueba comparativa de interacción antes de fijar el motor definitivo.
+- **Three.js** existente para 3D; evaluar **React Three Fiber** en un prototipo aislado, sin reescribir la escena hasta validar controles.
+- **gifenc** para GIF; **Mediabunny/WebCodecs** para video con detección de compatibilidad y alternativas.
+- **Vitest y Playwright** para regresión y pruebas de archivos exportados.
+- **Python (NumPy, SciPy, Shapely, Pillow)** solo para experimentación geométrica, procesamiento por lotes o servicios futuros. No es necesario un backend para el MVP.
+
+**Estado:** decisiones propuestas y diagramas de diseño; ninguna de estas librerías nuevas está integrada por el hecho de figurar aquí.
