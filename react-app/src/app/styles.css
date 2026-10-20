@@ -17,3 +17,5 @@
 .pattern-controls{border:0;padding:0;margin:0;min-width:0}.pattern-controls:disabled{opacity:.45}.pattern-controls:disabled button{cursor:not-allowed}
 
 .timeline-panel{width:100%;border:1px solid #444;border-radius:8px;padding:12px;background:#1b1b1b}.timeline-panel>input[type=range]{width:100%;accent-color:#ff5a00}.timeline-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:7px 0;font-size:12px}.timeline-top label{display:flex;align-items:center;gap:5px}.timeline-top input[type=number]{width:52px;background:#292929;border:1px solid #555;color:#fff;padding:4px}.timeline-top button{font-size:12px}
+
+.project-import{display:inline-flex;align-items:center;cursor:pointer;border:1px solid #555;border-radius:5px;padding:6px 9px;font-size:12px}.project-import input{display:none}
