@@ -1,0 +1,3 @@
+import {modules,geometry} from '../generators/modules';
+import {useStudio} from '../state/studio';
+export function ModuleLibrary(){const active=useStudio(s=>s.doc.active),toggle=useStudio(s=>s.toggleModule);return <aside className="library"><h2>Biblioteca de módulos</h2><p>Selecciona los módulos que participarán en la mezcla.</p><div className="tiles">{modules.map(m=><button key={m.id} type="button" aria-pressed={active.includes(m.id)} className={'tile '+(active.includes(m.id)?'selected':'')} onClick={()=>toggle(m.id)}><svg viewBox="0 0 100 100" aria-hidden="true" dangerouslySetInnerHTML={{__html:geometry(m.id,'#ff5a00')}}/><span>{m.label}</span></button>)}</div></aside>}
