@@ -31,7 +31,11 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
   const loader=new GLTFLoader();
   const resize=()=>{const side=Math.max(1,host.clientWidth);camera.aspect=1;camera.updateProjectionMatrix();renderer.setSize(side,side,false)};
   const observer=new ResizeObserver(resize);observer.observe(host);resize();
-  let frame=0,last=0;
+  let frame=0,last=0,exporting=false;
+  const renderAt=(event:Event)=>{const t=(event as CustomEvent<{time:number}>).detail.time;exporting=true;const state=settingsRef.current;mesh.rotation.set(0,0,0);mesh.rotation[state.direction]=t*state.speed;if(model){model.rotation.set(0,0,0);model.rotation[state.direction]=t*state.speed;}renderer.render(scene,camera)};
+  const resume=()=>{exporting=false;last=0};
+  window.addEventListener('lab:render-3d-frame',renderAt);
+  window.addEventListener('lab:export-end',resume);
   const loop=(t:number)=>{
    const s=settingsRef.current;
    if(mesh.geometry!==meshes[s.kind])mesh.geometry=meshes[s.kind];
@@ -39,13 +43,13 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
    const mat=s.material;material.wireframe=mat==='wireframe';material.metalness=mat==='chrome'?1:mat==='metal'?.8:mat==='plastic'?.05:.1;material.roughness=mat==='chrome'?.08:mat==='metal'?.24:mat==='plastic'?.35:.9;
    material.color.set(s.color);material.opacity=s.opacity/100;
    mesh.scale.setScalar(s.scale);if(model)model.scale.setScalar(s.scale*modelBaseScale);
-   if(last&&s.playing){mesh.rotation[s.direction]+=Math.min(.05,(t-last)/1000)*s.speed;if(model)model.rotation[s.direction]+=Math.min(.05,(t-last)/1000)*s.speed;}
+   if(!exporting&&last&&s.playing){mesh.rotation[s.direction]+=Math.min(.05,(t-last)/1000)*s.speed;if(model)model.rotation[s.direction]+=Math.min(.05,(t-last)/1000)*s.speed;}
    last=t;
-   renderer.render(scene,camera);
+   if(!exporting)renderer.render(scene,camera);
    frame=requestAnimationFrame(loop);
   };
   frame=requestAnimationFrame(loop);
-  return ()=>{cancelAnimationFrame(frame);observer.disconnect();loadId++;if(model)scene.remove(model);scene.remove(mesh);Object.values(meshes).forEach(g=>g.dispose());material.dispose();renderer.dispose();renderer.domElement.remove()};
+  return ()=>{window.removeEventListener('lab:render-3d-frame',renderAt);window.removeEventListener('lab:export-end',resume);cancelAnimationFrame(frame);observer.disconnect();loadId++;if(model)scene.remove(model);scene.remove(mesh);Object.values(meshes).forEach(g=>g.dispose());material.dispose();renderer.dispose();renderer.domElement.remove()};
  },[]);
  return <div ref={mount} className="overlay-3d" aria-label="Objeto tridimensional animado" />;
 }
