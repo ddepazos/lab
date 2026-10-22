@@ -7,7 +7,7 @@ export function composeSVG(background:string,layers:Layer[],fallback:StudioDocum
  const parts=layers.filter(l=>l.visible).map(l=>{
   let content='';
   if(l.type==='pattern'){const settings={...fallback,...l.pattern,background:'transparent'};const svg=settings.generator==='waves'?generateWavesSVG(settings):generateSVG(settings);content=svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'').replace(/<rect width="800" height="800" fill="transparent"\/>/,'');}
-  if(l.type==='text')content=`<text x="${l.x??400}" y="${l.y??400}" font-size="${l.fontSize??100}" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" fill="${fallback.foreground}">${escapeXml(l.text??'LAB')}</text>`;
+  if(l.type==='text')content=`<text x="${l.x??400}" y="${l.y??400}" font-size="${l.fontSize??100}" text-anchor="middle" font-family="${escapeXml(l.fontFamily??'Inter')},sans-serif" font-weight="${l.fontWeight??700}" fill="${l.fill??fallback.foreground}" transform="rotate(${l.rotation??0} ${l.x??400} ${l.y??400})">${escapeXml(l.text??'LAB')}</text>`;
   const rotation=l.type==='pattern'?(l.pattern?.rotation??fallback.rotation??0):0;
   const transform=l.type==='pattern'&&rotation?` transform="rotate(${rotation} 400 400)"`:'';
   return `<g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g>`;
