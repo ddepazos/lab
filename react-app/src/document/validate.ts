@@ -1,3 +1,4 @@
+import {GOOGLE_FONTS} from './fonts';
 import type {StudioDocument,ModuleKind} from './types';
 import type {Layer,BlendMode} from './layers';
 import type {Timeline,Track} from '../animation/timeline';
@@ -13,6 +14,9 @@ export function validDocument(v:unknown):v is StudioDocument{
  if(!Array.isArray(v.active)||v.active.length>12||!v.active.every(x=>kinds.includes(x)))return false;
  if(!color(v.foreground)||!color(v.background))return false;
  if(v.generator!==undefined&&v.generator!=='grid'&&v.generator!=='waves')return false;
+ if(v.waveStyle!==undefined&&!['lines','dots','mesh'].includes(String(v.waveStyle)))return false;
+ if(v.waveDotSize!==undefined&&!finite(v.waveDotSize,0.5,16))return false;
+ if(v.waveMeshColumns!==undefined&&!finite(v.waveMeshColumns,4,120))return false;
  for(const [key,min,max] of [['waveAmplitude',0,150],['waveFrequency',0.1,16],['waveNoise',0,100],['waveLines',4,150]] as const){
   if(v[key]!==undefined&&!finite(v[key],min,max))return false;
  }
@@ -24,6 +28,14 @@ export function validLayer(v:unknown):v is Layer{
  if(v.type==='pattern'&&v.pattern!==undefined&&!validDocument(v.pattern))return false;
  if(v.type==='text'){
   if(v.text!==undefined&&!string(v.text,10000))return false;
+  if(v.fontFamily!==undefined&&(!string(v.fontFamily,80)||!GOOGLE_FONTS.some(f=>f.family===v.fontFamily)))return false;
+  if(v.fontWeight!==undefined&&!finite(v.fontWeight,100,900))return false;
+  if(v.fill!==undefined&&!color(v.fill))return false;
+  if(v.rotation!==undefined&&!finite(v.rotation,-36000,36000))return false;
+  if(v.textMode!==undefined&&!['point','area'].includes(String(v.textMode)))return false;
+  if(v.textWidth!==undefined&&!finite(v.textWidth,40,800))return false;
+  if(v.lineHeight!==undefined&&!finite(v.lineHeight,0.5,4))return false;
+  if(v.textAlign!==undefined&&!['left','center','right'].includes(String(v.textAlign)))return false;
   for(const key of ['x','y','fontSize'] as const)if(v[key]!==undefined&&!finite(v[key],-10000,10000))return false;
  }
  return true;
