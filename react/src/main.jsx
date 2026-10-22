@@ -1,0 +1,3 @@
+import React from 'react';import{createRoot}from'react-dom/client';import './style.css';
+function App(){const[status,setStatus]=React.useState('Cargando editor');return <main><header><strong>LAB <small>React</small></strong><span role="status">{status}</span></header><iframe title="Editor LAB original" src={import.meta.env.VITE_LEGACY_URL||'../index.html'} onLoad={()=>setStatus('Editor original cargado')} onError={()=>setStatus('No se pudo cargar el editor')}/></main>}
+createRoot(document.getElementById('root')).render(<App/>);
