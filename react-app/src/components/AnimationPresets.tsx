@@ -3,7 +3,7 @@ import type {Layer} from '../document/layers';
 import type {Timeline,Track} from '../animation/timeline';
 type Preset='spin-cw'|'spin-ccw'|'bounce-x'|'bounce-y'|'pulse'|'fade'|'sway'|'float'|'slide-in'|'blink'|'zoom-in'|'drift';
 const presets:{id:Preset;name:string}[]=[{id:'spin-cw',name:'↻ Rotación horaria'},{id:'spin-ccw',name:'↺ Rotación antihoraria'},{id:'bounce-x',name:'↔ Rebote horizontal'},{id:'bounce-y',name:'↕ Rebote vertical'},{id:'pulse',name:'◉ Pulsación'},{id:'fade',name:'◐ Aparición'},{id:'sway',name:'↶ Oscilación'},{id:'float',name:'↕ Flotación'},{id:'slide-in',name:'→ Entrada lateral'},{id:'blink',name:'✦ Parpadeo'},{id:'zoom-in',name:'⊕ Ampliación'},{id:'drift',name:'➜ Desplazamiento continuo'}];
-export function AnimationPresets({layerId,layerType,layer,timeline,onChange,onPreview}: {layerId:string|undefined;layerType:'pattern'|'text'|undefined;layer?:Layer;timeline:Timeline;onChange:(timeline:Timeline)=>void;onPreview?:()=>void}){
+export function AnimationPresets({layerId,layerType,layer,timeline,onChange,onPreview}: {layerId:string|undefined;layerType:'pattern'|'text'|'image'|undefined;layer?:Layer;timeline:Timeline;onChange:(timeline:Timeline)=>void;onPreview?:()=>void}){
  const [preset,setPreset]=useState<Preset>('bounce-x');
  const [duration,setDuration]=useState(2);
  const [amount,setAmount]=useState(80);
