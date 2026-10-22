@@ -1,0 +1,40 @@
+name: LAB browser audit and public reference scraping
+on:
+  push:
+    branches: [feature/lab-auditoria-scraping]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-save --no-package-lock @playwright/test
+      - run: npx playwright install --with-deps chromium
+      - name: Browser tests against published LAB
+        env:
+          LAB_URL: https://ddepazos.github.io/lab/
+        run: npx playwright test audit/*.spec.cjs --reporter=line
+      - name: Scrape public LAB interface
+        if: always()
+        env:
+          LAB_URL: https://ddepazos.github.io/lab/
+        run: node audit/scrape-lab.cjs
+      - name: Build React shell
+        working-directory: react
+        run: |
+          npm install
+          npm run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-audit-reports
+          path: |
+            audit-results/
+            test-results/
+          if-no-files-found: ignore
