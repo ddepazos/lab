@@ -23,9 +23,16 @@ export function validDocument(v:unknown):v is StudioDocument{
  return true;
 }
 export function validLayer(v:unknown):v is Layer{
- if(!obj(v)||!string(v.id,128)||!v.id||!string(v.name,256)||!['pattern','text'].includes(String(v.type)))return false;
+ if(!obj(v)||!string(v.id,128)||!v.id||!string(v.name,256)||!['pattern','text','image'].includes(String(v.type)))return false;
  if(typeof v.visible!=='boolean'||typeof v.locked!=='boolean'||!finite(v.opacity,0,100)||!blends.includes(v.blend as BlendMode))return false;
  if(v.type==='pattern'&&v.pattern!==undefined&&!validDocument(v.pattern))return false;
+ if(v.scale!==undefined&&!finite(v.scale,0.01,100))return false;
+ if(v.type==='image'){
+  if(typeof v.imageSrc!=='string'||v.imageSrc.length>6000000||!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(v.imageSrc))return false;
+  if(!finite(v.imageWidth,1,800)||!finite(v.imageHeight,1,800))return false;
+  if(v.x!==undefined&&!finite(v.x,-10000,10000))return false;
+  if(v.y!==undefined&&!finite(v.y,-10000,10000))return false;
+ }
  if(v.type==='text'){
   if(v.text!==undefined&&!string(v.text,10000))return false;
   if(v.fontFamily!==undefined&&(!string(v.fontFamily,80)||!GOOGLE_FONTS.some(f=>f.family===v.fontFamily)))return false;
