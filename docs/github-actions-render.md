@@ -6,10 +6,10 @@ La interfaz React sigue publicada en GitHub Pages. El renderizado directo del bo
 
 El workflow [LAB FFmpeg render (manual)](../.github/workflows/ffmpeg-render.yml) descarga un artefacto de una ejecución previa **del mismo repositorio** que contenga exactamente un archivo de vídeo (MP4, WebM o MOV), lo recodifica con FFmpeg en un runner temporal de GitHub y publica el resultado como artefacto descargable durante siete días.
 
-1. Carga el vídeo como artifact llamado `lab-render-input` mediante un workflow de GitHub Actions que ya tengas autorizado en el repositorio. El workflow de FFmpeg **no recibe archivos directamente del navegador**.
-2. Abre GitHub → Actions → LAB FFmpeg render (manual) → Run workflow.
-3. Indica el ID de la ejecución que generó el artefacto, el nombre del artefacto, formato y CRF.
-4. Descarga el resultado desde los artifacts de esa ejecución.
+1. Ejecuta primero **LAB create render test input** (`.github/workflows/stage-render-input.yml`) desde GitHub → Actions. Este workflow genera un vídeo de prueba y lo publica como artifact `lab-render-input`. No utiliza una composición real de LAB.
+2. Copia el **run ID** de la ejecución de prueba. Después abre GitHub → Actions → LAB FFmpeg render (manual) → Run workflow.
+3. Indica ese run ID, el nombre `lab-render-input`, formato y CRF.
+4. Descarga el resultado desde los artifacts de la ejecución de renderizado. Estos workflows manuales deben estar disponibles en la rama predeterminada para aparecer en la pestaña Actions; mientras estén en el PR, no constituyen una prueba de ejecución remota.
 
 **Restricciones:** el vídeo se recodifica a la resolución original; no crea detalle 4K a partir de 800×800. Se exporta vídeo sin audio, deliberadamente en esta primera fase. Los artifacts tienen límites de tamaño y retención de GitHub. La disponibilidad y el coste de runners dependen del plan del repositorio.
 
