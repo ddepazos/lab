@@ -13,6 +13,7 @@ export function DrawingCanvas({strokes,setStrokes,enabled,eraser,color,width,bac
  const start=(stage:Konva.Stage)=>{if(!enabled)return;const p=point(stage);if(!p)return;active.current=true;setStrokes(prev=>[...prev,{points:[p],color:eraser?background:color,width}])};
  const move=(stage:Konva.Stage)=>{if(!enabled||!active.current)return;const p=point(stage);if(!p)return;setStrokes(prev=>prev.map((stroke,i)=>i===prev.length-1?{...stroke,points:[...stroke.points,p]}:stroke))};
  const stop=()=>{active.current=false};
+ useEffect(()=>{if(!enabled)active.current=false},[enabled]);
  return <div ref={holder} className="konva-overlay" style={{touchAction:enabled?'none':'auto',pointerEvents:enabled?'auto':'none'}}>
   <Stage width={size} height={size} onMouseDown={e=>start(e.target.getStage()!)} onTouchStart={e=>start(e.target.getStage()!)} onMouseMove={e=>move(e.target.getStage()!)} onTouchMove={e=>move(e.target.getStage()!)} onMouseUp={stop} onTouchEnd={stop} onMouseLeave={stop} onTouchCancel={stop}>
    <Layer listening={false}>{strokes.map((stroke,i)=>stroke.points.length===1?
