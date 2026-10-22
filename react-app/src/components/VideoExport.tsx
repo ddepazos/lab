@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {BufferTarget,CanvasSource,Mp4OutputFormat,WebMOutputFormat,Output,Quality} from 'mediabunny';
+import {BufferTarget,CanvasSource,Mp4OutputFormat,WebMOutputFormat,Output,Quality,Input,BlobSource,ALL_FORMATS} from 'mediabunny';
 type Props={artboardSelector:string;duration:number;onTimeChange:(time:number)=>void;onComplete:()=>void;onExportStateChange?:(busy:boolean)=>void};
 const raf=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
 function drawCanvas(ctx:CanvasRenderingContext2D,canvas:HTMLCanvasElement,board:HTMLElement){
@@ -47,6 +47,7 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
    output.addVideoTrack(source,{frameRate:fps});
    await output.start();
    let previousSvg='',previousImage:HTMLImageElement|null=null;
+   let visibleFrames=0;
    for(let i=0;i<total;i++){
     const t=i/fps;
     onTimeChange(t);
@@ -62,15 +63,24 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
     if(gl)drawCanvas(ctx,gl,board);
     board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay canvas').forEach(c=>drawCanvas(ctx,c,board));
     board.querySelectorAll<HTMLCanvasElement>('.konva-overlay canvas').forEach(c=>drawCanvas(ctx,c,board));
+    const pixels=ctx.getImageData(0,0,800,800).data;
+    let variation=false;
+    for(let k=0;k<pixels.length;k+=4096){if(pixels[k]!==pixels[0]||pixels[k+1]!==pixels[1]||pixels[k+2]!==pixels[2]){variation=true;break}}
+    if(variation)visibleFrames++;
     await source.add(t,1/fps,{keyFrame:i%fps===0});
     if(i%5===0||i===total-1)setStatus('Renderizando '+(i+1)+' / '+total+' fotogramas ('+Math.round((i+1)/total*100)+'%)');
    }
+   if(visibleFrames===0)throw new Error('Todos los fotogramas aparecen uniformes. Se canceló el video para evitar exportar una pantalla vacía.');
    source.close();
    setStatus('Finalizando archivo…');
    await output.finalize();
    if(!target.buffer||target.buffer.byteLength<1024)throw new Error('El codificador devolvió un archivo vacío');
    const bytes=new Uint8Array(target.buffer);
-   download(new Blob([bytes],{type:format==='mp4'?'video/mp4':'video/webm'}),format);
+   const blob=new Blob([bytes],{type:format==='mp4'?'video/mp4':'video/webm'});
+   const check=new Input({source:new BlobSource(blob),formats:ALL_FORMATS});
+   const actualDuration=await check.computeDuration();
+   if(!Number.isFinite(actualDuration)||Math.abs(actualDuration-seconds)>Math.max(.15,2/fps))throw new Error('Duración inválida: '+actualDuration.toFixed(2)+' s en lugar de '+seconds+' s. No se descargó el archivo.');
+   download(blob,format);
    setStatus('Exportación completada: '+seconds+' s · '+total+' fotogramas · '+(bytes.byteLength/1048576).toFixed(1)+' MB');
   }catch(error){console.error('LAB export',error);setStatus('Error: '+(error instanceof Error?error.message:String(error)))}
   finally{window.dispatchEvent(new Event('lab:export-end'));onComplete();onExportStateChange?.(false);setBusy(false)}
