@@ -36,3 +36,9 @@ The existing script is retained at `C:\Users\nicol\lab\scripts\render-ffmpeg.ps1
 ## Web deployment
 
 The existing Vite `base: './'` supports relative assets in desktop and static web hosting. For Cloudflare Pages use root directory `react-app`, build command `npm run build`, output directory `dist`. The Cloudflare deployment and custom domain still require access to the Cloudflare account.
+
+## Automated Windows installer
+
+The workflow `.github/workflows/lab-desktop-windows.yml` runs on pull requests that modify `react-app`, and can also be triggered manually from the default branch. It builds the React app, runs unit tests, compiles the Tauri Windows NSIS installer and publishes an artifact called **LAB-Desktop-Windows-installer**. Download the artifact, unzip it and run the installer to create a Windows application; a desktop shortcut depends on the NSIS install options.
+
+**Status:** the workflow configuration exists, but no successful Windows build has yet been verified. The NSIS installer cannot be assumed working until the job succeeds.
