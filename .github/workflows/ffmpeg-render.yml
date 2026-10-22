@@ -1,0 +1,83 @@
+name: LAB FFmpeg render (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Run ID of a workflow in this repository with a video artifact"
+        required: true
+        type: string
+      source_artifact:
+        description: "Artifact name containing the input video"
+        required: true
+        default: lab-render-input
+        type: string
+      format:
+        description: "Output video format"
+        required: true
+        default: mp4
+        type: choice
+        options: [mp4, webm]
+      crf:
+        description: "Quality (0-51 for MP4; 0-63 for WebM)"
+        required: true
+        default: "18"
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  encode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Validate parameters
+        env:
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_ARTIFACT: ${{ inputs.source_artifact }}
+          FORMAT: ${{ inputs.format }}
+          CRF: ${{ inputs.crf }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]] || { echo "Invalid run ID"; exit 1; }
+          [[ "$SOURCE_ARTIFACT" =~ ^[a-zA-Z0-9_-]{1,80}$ ]] || { echo "Invalid artifact name"; exit 1; }
+          [[ "$CRF" =~ ^[0-9]{1,2}$ ]] || { echo "Invalid CRF"; exit 1; }
+          if [[ "$FORMAT" == mp4 ]]; then (( 10#$CRF <= 51 )) || exit 1
+          else (( 10#$CRF <= 63 )) || exit 1; fi
+      - name: Download input from repository artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.source_artifact }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: input
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          ffmpeg -version | head -n 1
+      - name: Encode video
+        env:
+          FORMAT: ${{ inputs.format }}
+          CRF: ${{ inputs.crf }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -d '' videos < <(find input -type f \( -iname '*.mp4' -o -iname '*.webm' -o -iname '*.mov' \) -print0)
+          if (( ${#videos[@]} != 1 )); then echo "Expected exactly one video input; found ${#videos[@]}"; exit 1; fi
+          mkdir -p output
+          if [[ "$FORMAT" == mp4 ]]; then
+            ffmpeg -hide_banner -nostdin -y -i "${videos[0]}" -map 0:v:0 -an -c:v libx264 -preset medium -crf "$CRF" -pix_fmt yuv420p -movflags +faststart output/LAB-render.mp4
+          else
+            ffmpeg -hide_banner -nostdin -y -i "${videos[0]}" -map 0:v:0 -an -c:v libvpx-vp9 -b:v 0 -crf "$CRF" output/LAB-render.webm
+          fi
+          ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate -of default=noprint_wrappers=1 output/LAB-render."$FORMAT"
+      - name: Upload rendered video
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-ffmpeg-${{ inputs.format }}-${{ github.run_number }}
+          path: output/LAB-render.*
+          if-no-files-found: error
+          retention-days: 7
