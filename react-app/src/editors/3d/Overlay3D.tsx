@@ -8,7 +8,7 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
  useEffect(()=>{
   const host=mount.current;if(!host)return;
   let renderer:THREE.WebGLRenderer;
-  try{renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});}catch(error){console.error('WebGL 3D no disponible',error);return;}
+  try{renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});}catch(error){console.error('WebGL 3D no disponible',error);return;}
   renderer.setClearColor(0x000000,0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
   host.appendChild(renderer.domElement);
