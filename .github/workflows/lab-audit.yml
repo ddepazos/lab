@@ -20,6 +20,16 @@ jobs:
         env:
           LAB_URL: https://ddepazos.github.io/lab/
         run: npx playwright test audit/*.spec.cjs --reporter=line
+      - name: Scrape public LAB interface
+        if: always()
+        env:
+          LAB_URL: https://ddepazos.github.io/lab/
+        run: node audit/scrape-lab.cjs
+      - name: Build React shell
+        working-directory: react
+        run: |
+          npm install
+          npm run build
       - uses: actions/upload-artifact@v4
         if: always()
         with:
