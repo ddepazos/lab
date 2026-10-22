@@ -41,6 +41,8 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
    const canvas=document.createElement('canvas');canvas.width=800;canvas.height=800;
    const ctx=canvas.getContext('2d',{alpha:false});
    if(!ctx)throw new Error('No se pudo crear el canvas de exportación');
+   await document.fonts.ready;
+   await raf();await raf();
    const target=new BufferTarget();
    const output=new Output({format:format==='mp4'?new Mp4OutputFormat():new WebMOutputFormat(),target});
    const source=new CanvasSource(canvas,{codec:format==='mp4'?'avc':'vp9',quality:new Quality('high')});
@@ -58,11 +60,12 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
     if(markup!==previousSvg){previousImage=await imageFromSvg(svg);previousSvg=markup}
     ctx.fillStyle='#171717';ctx.fillRect(0,0,800,800);
     if(previousImage)ctx.drawImage(previousImage,0,0,800,800);
+    else throw new Error('No se pudo componer el fondo SVG');
     window.dispatchEvent(new CustomEvent('lab:render-3d-frame',{detail:{time:t}}));
     const gl=board.querySelector<HTMLCanvasElement>('.overlay-3d canvas');
     if(gl)drawCanvas(ctx,gl,board);
-    board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay canvas').forEach(c=>drawCanvas(ctx,c,board));
-    board.querySelectorAll<HTMLCanvasElement>('.konva-overlay canvas').forEach(c=>drawCanvas(ctx,c,board));
+    board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay .konvajs-content canvas').forEach(c=>drawCanvas(ctx,c,board));
+    board.querySelectorAll<HTMLCanvasElement>('.konva-overlay .konvajs-content canvas').forEach(c=>drawCanvas(ctx,c,board));
     const pixels=ctx.getImageData(0,0,800,800).data;
     let variation=false;
     for(let k=0;k<pixels.length;k+=4096){if(pixels[k]!==pixels[0]||pixels[k+1]!==pixels[1]||pixels[k+2]!==pixels[2]){variation=true;break}}
