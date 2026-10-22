@@ -9,7 +9,7 @@ export function TimelinePanel({layers,selectedLayer,time,setTime,timeline,setTim
  useEffect(()=>{timeRef.current=time;},[time]);
  useEffect(()=>{if(!playing||exportActive)return;let frame=0;const tick=(now:number)=>{if(clock.current){const next=timeRef.current+(now-clock.current)/1000;const t=timeline.loop?next%timeline.duration:Math.min(next,timeline.duration);timeRef.current=t;setTime(t);if(!timeline.loop&&t>=timeline.duration){setPlaying(false);return;}}clock.current=now;frame=requestAnimationFrame(tick);};frame=requestAnimationFrame(tick);return()=>{cancelAnimationFrame(frame);clock.current=0;};},[playing,exportActive,timeline.duration,timeline.loop,setTime]);
  useEffect(()=>{if(exportActive)setPlaying(false)},[exportActive]);
- useEffect(()=>{if(previewToken>0&&!exportActive){clock.current=0;timeRef.current=0;setPlaying(true)}},[previewToken,exportActive]);
+ useEffect(()=>{if(previewToken>0&&!exportActive){clock.current=0;timeRef.current=0;setPlaying(true)}},[previewToken]);
  const layer=layers.find(l=>l.id===selectedLayer);
  const property:Track['property']=layer?.type==='text'?'x':'rotation';
  const hasTrack=timeline.tracks.some(t=>t.layerId===selectedLayer&&t.property===property);
