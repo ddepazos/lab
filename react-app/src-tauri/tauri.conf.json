@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "cl.lab.generative.desktop",
   "build": {
-    "beforeDevCommand": "npm run dev -- --host 127.0.0.1",
+    "beforeDevCommand": "npm run dev -- --host 127.0.0.1 --port 5173 --strictPort",
     "devUrl": "http://127.0.0.1:5173",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
@@ -21,11 +21,12 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' asset: http://asset.localhost; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ipc: http://ipc.localhost; worker-src 'self' blob:"
+      "csp": "default-src 'self' asset: http://asset.localhost; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self'; connect-src 'self' ipc: http://ipc.localhost; worker-src 'self' blob:"
     }
   },
   "bundle": {
     "active": true,
+    "icon": ["icons/icon.ico", "icons/icon.png"],
     "targets": [
       "nsis"
     ],
