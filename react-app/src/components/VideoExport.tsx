@@ -7,10 +7,10 @@ function drawCanvas(ctx:CanvasRenderingContext2D,canvas:HTMLCanvasElement,board:
  if(!a.width||!a.height||!r.width||!r.height||!canvas.width||!canvas.height)return;
  ctx.drawImage(canvas,(r.left-a.left)/a.width*800,(r.top-a.top)/a.height*800,r.width/a.width*800,r.height/a.height*800);
 }
-function imageFromSvg(svg:SVGSVGElement):Promise<HTMLImageElement>{
+function imageFromSvg(svg:SVGSVGElement,size:number):Promise<HTMLImageElement>{
  const clone=svg.cloneNode(true) as SVGSVGElement;
  clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
- clone.setAttribute('width','800');clone.setAttribute('height','800');
+ clone.setAttribute('width',String(size));clone.setAttribute('height',String(size));
  const blob=new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml;charset=utf-8'});
  const url=URL.createObjectURL(blob);
  return new Promise((resolve,reject)=>{
@@ -59,7 +59,7 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
     const svg=board.querySelector<SVGSVGElement>('.artboard-base svg');
     if(!svg)throw new Error('Falta el SVG del fondo');
     const markup=svg.outerHTML;
-    if(markup!==previousSvg){previousImage=await imageFromSvg(svg);previousSvg=markup}
+    if(markup!==previousSvg){previousImage=await imageFromSvg(svg,resolution);previousSvg=markup}
     ctx.fillStyle='#171717';ctx.fillRect(0,0,800,800);
     if(previousImage)ctx.drawImage(previousImage,0,0,800,800);
     else throw new Error('No se pudo componer el fondo SVG');
@@ -68,7 +68,7 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
     if(gl)drawCanvas(ctx,gl,board);
     board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay .konvajs-content canvas').forEach(c=>drawCanvas(ctx,c,board));
     board.querySelectorAll<HTMLCanvasElement>('.konva-overlay .konvajs-content canvas').forEach(c=>drawCanvas(ctx,c,board));
-    const pixels=ctx.getImageData(0,0,800,800).data;
+    const pixels=ctx.getImageData(0,0,Math.min(resolution,800),Math.min(resolution,800)).data;
     let variation=false;
     for(let k=0;k<pixels.length;k+=4096){if(pixels[k]!==pixels[0]||pixels[k+1]!==pixels[1]||pixels[k+2]!==pixels[2]){variation=true;break}}
     if(variation)visibleFrames++;
