@@ -1,0 +1,11 @@
+{
+  "name": "lab-qa",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test audit/*.spec.cjs",
+    "scrape:lab": "node audit/scrape-lab.cjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0"
+  }
+}
