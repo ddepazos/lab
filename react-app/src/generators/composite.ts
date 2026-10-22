@@ -11,15 +11,15 @@ function svgTextContent(layer:Layer,fallback:StudioDocument):string{
  const lines:string[]=[];
  if(area){
   const maxChars=Math.max(1,Math.floor(width/(size*.55)));
-  for(const paragraph of raw.split('\\n')){
+  for(const paragraph of raw.split('\n')){
    let line='';
-   for(const word of paragraph.split(/\\s+/)){
+   for(const word of paragraph.split(/\s+/)){
     if(line&&(line+' '+word).length>maxChars){lines.push(line);line=word}else line=line?line+' '+word:word;
     while(line.length>maxChars){lines.push(line.slice(0,maxChars));line=line.slice(maxChars)}
    }
    lines.push(line);
   }
- }else lines.push(...raw.split('\\n'));
+ }else lines.push(...raw.split('\n'));
  const anchor=area?(layer.textAlign==='right'?'end':layer.textAlign==='center'?'middle':'start'):'start';
  const tx=area?(layer.textAlign==='right'?x+width:layer.textAlign==='center'?x+width/2:x):x;
  const lineHeight=(layer.lineHeight??1.2)*size;
