@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -25,6 +27,7 @@
     "typescript": "~5.9.0",
     "vite": "^7.0.0",
     "vitest": "^3.0.0",
-    "@types/three": "^0.180.0"
+    "@types/three": "^0.180.0",
+    "@tauri-apps/cli": "^2.0.0"
   }
 }
