@@ -1,91 +1,79 @@
 import {useState} from 'react';
-type Props={artboardSelector:string;duration:number;onTimeChange:(time:number)=>void;onComplete:()=>void};
-const frame=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
-function drawLayer(ctx:CanvasRenderingContext2D,canvas:HTMLCanvasElement,board:HTMLElement){
+import {BufferTarget,CanvasSource,Mp4OutputFormat,WebMOutputFormat,Output,Quality} from 'mediabunny';
+type Props={artboardSelector:string;duration:number;onTimeChange:(time:number)=>void;onComplete:()=>void;onExportStateChange?:(busy:boolean)=>void};
+const raf=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
+function drawCanvas(ctx:CanvasRenderingContext2D,canvas:HTMLCanvasElement,board:HTMLElement){
  const a=board.getBoundingClientRect(),r=canvas.getBoundingClientRect();
- if(!canvas.width||!canvas.height||!a.width||!a.height||!r.width||!r.height)return;
+ if(!a.width||!a.height||!r.width||!r.height||!canvas.width||!canvas.height)return;
  ctx.drawImage(canvas,(r.left-a.left)/a.width*800,(r.top-a.top)/a.height*800,r.width/a.width*800,r.height/a.height*800);
 }
-function loadSvg(svg:SVGSVGElement):Promise<HTMLImageElement>{
+function imageFromSvg(svg:SVGSVGElement):Promise<HTMLImageElement>{
  const clone=svg.cloneNode(true) as SVGSVGElement;
  clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
  clone.setAttribute('width','800');clone.setAttribute('height','800');
  const blob=new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml;charset=utf-8'});
  const url=URL.createObjectURL(blob);
  return new Promise((resolve,reject)=>{
-  const image=new Image();
-  image.onload=()=>{URL.revokeObjectURL(url);resolve(image)};
-  image.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('SVG no decodificable'))};
-  image.src=url;
+  const img=new Image();
+  img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('No se pudo procesar el fondo SVG de la animación'))};
+  img.src=url;
  });
 }
-export function VideoExport({artboardSelector,duration,onTimeChange,onComplete}:Props){
+function download(blob:Blob,ext:'mp4'|'webm'){
+ const url=URL.createObjectURL(blob);
+ const anchor=document.createElement('a');anchor.href=url;anchor.download='LAB-composicion-2D-3D.'+ext;
+ document.body.appendChild(anchor);anchor.click();anchor.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,onExportStateChange}:Props){
  const [busy,setBusy]=useState(false),[status,setStatus]=useState('');
- const [fps,setFps]=useState(30);
+ const [fps,setFps]=useState(30),[format,setFormat]=useState<'mp4'|'webm'>('mp4');
  const record=async()=>{
   if(busy)return;
   const board=document.querySelector<HTMLElement>(artboardSelector);
   if(!board){setStatus('No se encontró el lienzo');return}
-  if(!('MediaRecorder'in window)){setStatus('El navegador no admite grabación WebM');return}
-  const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));
-  if(!mime){setStatus('WebM no disponible en este navegador');return}
-  setBusy(true);setStatus('Preparando las capas…');
-  let stream:MediaStream|null=null;
+  if(typeof VideoEncoder==='undefined'){setStatus('Este navegador no admite WebCodecs');return}
+  const seconds=Math.max(1,Math.min(30,Number.isFinite(duration)?duration:5));
+  const total=Math.round(seconds*fps);
+  setBusy(true);onExportStateChange?.(true);setStatus('Preparando '+total+' fotogramas…');
   try{
    const canvas=document.createElement('canvas');canvas.width=800;canvas.height=800;
    const ctx=canvas.getContext('2d',{alpha:false});
-   if(!ctx)throw new Error('No se pudo crear el lienzo de grabación');
-   stream=canvas.captureStream(fps);
-   const chunks:Blob[]=[];
-   const recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:6000000});
-   let recordingError:Error|null=null;
-   const finished=new Promise<void>((resolve,reject)=>{
-    recorder.addEventListener('dataavailable',e=>{if(e.data.size)chunks.push(e.data)});
-    recorder.addEventListener('error',e=>{recordingError=new Error('Falló MediaRecorder: '+e.type)});
-    recorder.addEventListener('stop',()=>recordingError?reject(recordingError):resolve(),{once:true});
-   });
-   const seconds=Math.max(1,Math.min(120,Number.isFinite(duration)?duration:5));
-   let lastSvgMarkup='',lastImage:HTMLImageElement|null=null,svgWarnings=0;
-   const start=performance.now();
-   recorder.start(1000);
-   let nextTick=start;
-   while(recorder.state==='recording'){
-    const elapsed=(performance.now()-start)/1000;
-    if(elapsed>=seconds)break;
-    onTimeChange(elapsed);
-    await frame();await frame();
-    ctx.fillStyle='#171717';ctx.fillRect(0,0,800,800);
+   if(!ctx)throw new Error('No se pudo crear el canvas de exportación');
+   const target=new BufferTarget();
+   const output=new Output({format:format==='mp4'?new Mp4OutputFormat():new WebMOutputFormat(),target});
+   const source=new CanvasSource(canvas,{codec:format==='mp4'?'avc':'vp9',quality:new Quality('high')});
+   output.addVideoTrack(source,{frameRate:fps});
+   await output.start();
+   let previousSvg='',previousImage:HTMLImageElement|null=null;
+   for(let i=0;i<total;i++){
+    const t=i/fps;
+    onTimeChange(t);
+    await raf();await raf();
     const svg=board.querySelector<SVGSVGElement>('.artboard-base svg');
-    if(svg){
-     const markup=svg.outerHTML;
-     if(markup!==lastSvgMarkup){
-      try{lastImage=await loadSvg(svg);lastSvgMarkup=markup}
-      catch(error){if(svgWarnings++===0)console.warn('Fallo al decodificar SVG',error)}
-     }
-     if(lastImage)ctx.drawImage(lastImage,0,0,800,800);
-    }
+    if(!svg)throw new Error('Falta el SVG del fondo');
+    const markup=svg.outerHTML;
+    if(markup!==previousSvg){previousImage=await imageFromSvg(svg);previousSvg=markup}
+    ctx.fillStyle='#171717';ctx.fillRect(0,0,800,800);
+    if(previousImage)ctx.drawImage(previousImage,0,0,800,800);
+    window.dispatchEvent(new CustomEvent('lab:render-3d-frame',{detail:{time:t}}));
     const gl=board.querySelector<HTMLCanvasElement>('.overlay-3d canvas');
-    if(gl)drawLayer(ctx,gl,board);
-    board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay canvas').forEach(c=>drawLayer(ctx,c,board));
-    board.querySelectorAll<HTMLCanvasElement>('.konva-overlay canvas').forEach(c=>drawLayer(ctx,c,board));
-    const elapsedNow=(performance.now()-start)/1000;
-    setStatus('Grabando '+elapsedNow.toFixed(1)+' / '+seconds.toFixed(1)+' s');
-    nextTick+=1000/fps;
-    const wait=nextTick-performance.now();
-    if(wait>0)await new Promise<void>(resolve=>setTimeout(resolve,wait));
-    else nextTick=performance.now();
+    if(gl)drawCanvas(ctx,gl,board);
+    board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay canvas').forEach(c=>drawCanvas(ctx,c,board));
+    board.querySelectorAll<HTMLCanvasElement>('.konva-overlay canvas').forEach(c=>drawCanvas(ctx,c,board));
+    await source.add(t,1/fps,{keyFrame:i%fps===0});
+    if(i%5===0||i===total-1)setStatus('Renderizando '+(i+1)+' / '+total+' fotogramas ('+Math.round((i+1)/total*100)+'%)');
    }
-   if(recorder.state!=='inactive')recorder.stop();
-   await Promise.race([finished,new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error('El codificador no finalizó en 15 segundos')),15000))]);
-   if(!chunks.length)throw new Error('No se generaron datos de video');
-   const blob=new Blob(chunks,{type:mime});
-   if(blob.size<1024)throw new Error('El archivo de video está vacío o incompleto');
-   const url=URL.createObjectURL(blob);
-   const a=document.createElement('a');a.href=url;a.download='LAB-composicion-2D-3D.webm';document.body.appendChild(a);a.click();a.remove();
-   setTimeout(()=>URL.revokeObjectURL(url),60000);
-   setStatus('Video descargado: '+(blob.size/1048576).toFixed(2)+' MB'+(svgWarnings?' · Revisar fondo SVG':''));
-  }catch(error){console.error('LAB video export',error);setStatus('Error de exportación: '+String(error))}
-  finally{stream?.getTracks().forEach(t=>t.stop());onComplete();setBusy(false)}
+   source.close();
+   setStatus('Finalizando archivo…');
+   await output.finalize();
+   if(!target.buffer||target.buffer.byteLength<1024)throw new Error('El codificador devolvió un archivo vacío');
+   const bytes=new Uint8Array(target.buffer);
+   download(new Blob([bytes],{type:format==='mp4'?'video/mp4':'video/webm'}),format);
+   setStatus('Exportación completada: '+seconds+' s · '+total+' fotogramas · '+(bytes.byteLength/1048576).toFixed(1)+' MB');
+  }catch(error){console.error('LAB export',error);setStatus('Error: '+(error instanceof Error?error.message:String(error)))}
+  finally{window.dispatchEvent(new Event('lab:export-end'));onComplete();onExportStateChange?.(false);setBusy(false)}
  };
- return <section className="video-export"><h2>Exportar animación</h2><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><button disabled={busy} onClick={record}>{busy?'Grabando…':'↓ Guardar video WebM'}</button><p role="status" className="note">{status||'Graba patrón 2D, modelo 3D, texto y dibujo en un solo archivo.'}</p></section>;
+ return <section className="video-export"><h2>Exportar animación</h2><label>Formato<select value={format} disabled={busy} onChange={e=>setFormat(e.target.value as 'mp4'|'webm')}><option value="mp4">MP4</option><option value="webm">WebM</option></select></label><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><button disabled={busy} onClick={record}>{busy?'Renderizando…':'↓ Exportar video'}</button><p role="status" className="note">{status||'Renderiza cada fotograma con tiempos exactos e incluye las capas 2D y 3D.'}</p></section>;
 }
