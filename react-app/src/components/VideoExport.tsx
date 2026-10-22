@@ -28,6 +28,7 @@ function download(blob:Blob,ext:'mp4'|'webm'){
 }
 export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,onExportStateChange}:Props){
  const [busy,setBusy]=useState(false),[status,setStatus]=useState('');
+ const [resolution,setResolution]=useState(800);
  const [fps,setFps]=useState(30),[format,setFormat]=useState<'mp4'|'webm'>('mp4');
  const record=async()=>{
   if(busy)return;
@@ -38,8 +39,9 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
   const total=Math.round(seconds*fps);
   setBusy(true);onExportStateChange?.(true);setStatus('Preparando '+total+' fotogramas…');
   try{
-   const canvas=document.createElement('canvas');canvas.width=800;canvas.height=800;
+   const canvas=document.createElement('canvas');canvas.width=resolution;canvas.height=resolution;
    const ctx=canvas.getContext('2d',{alpha:false});
+   ctx?.scale(resolution/800,resolution/800);
    if(!ctx)throw new Error('No se pudo crear el canvas de exportación');
    await document.fonts.ready;
    await raf();await raf();
@@ -84,9 +86,9 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
    const actualDuration=await check.computeDuration();
    if(!Number.isFinite(actualDuration)||Math.abs(actualDuration-seconds)>Math.max(.15,2/fps))throw new Error('Duración inválida: '+actualDuration.toFixed(2)+' s en lugar de '+seconds+' s. No se descargó el archivo.');
    download(blob,format);
-   setStatus('Exportación completada: '+seconds+' s · '+total+' fotogramas · '+(bytes.byteLength/1048576).toFixed(1)+' MB');
+   setStatus('Exportación completada: '+seconds+' s · '+resolution+' × '+resolution+' · '+total+' fotogramas · '+(bytes.byteLength/1048576).toFixed(1)+' MB');
   }catch(error){console.error('LAB export',error);setStatus('Error: '+(error instanceof Error?error.message:String(error)))}
   finally{window.dispatchEvent(new Event('lab:export-end'));onComplete();onExportStateChange?.(false);setBusy(false)}
  };
- return <section className="video-export"><h2>Exportar animación</h2><label>Formato<select value={format} disabled={busy} onChange={e=>setFormat(e.target.value as 'mp4'|'webm')}><option value="mp4">MP4</option><option value="webm">WebM</option></select></label><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><button disabled={busy} onClick={record}>{busy?'Renderizando…':'↓ Exportar video'}</button><p role="status" className="note">{status||'Renderiza cada fotograma con tiempos exactos e incluye las capas 2D y 3D.'}</p></section>;
+ return <section className="video-export"><h2>Exportar animación</h2><label>Formato<select value={format} disabled={busy} onChange={e=>setFormat(e.target.value as 'mp4'|'webm')}><option value="mp4">MP4</option><option value="webm">WebM</option></select></label><label>Resolución<select value={resolution} disabled={busy} onChange={e=>setResolution(Number(e.target.value))}><option value={800}>800 × 800 · Original</option><option value={1080}>1080 × 1080 · HD cuadrado</option><option value={2160}>2160 × 2160 · 4K cuadrado</option></select></label><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><button disabled={busy} onClick={record}>{busy?'Renderizando…':'↓ Exportar video'}</button><p role="status" className="note">{status||'Renderiza cada fotograma con tiempos exactos e incluye las capas 2D y 3D.'}</p></section>;
 }
