@@ -1,3 +1,4 @@
+import {GOOGLE_FONTS} from './fonts';
 import type {StudioDocument,ModuleKind} from './types';
 import type {Layer,BlendMode} from './layers';
 import type {Timeline,Track} from '../animation/timeline';
@@ -24,6 +25,10 @@ export function validLayer(v:unknown):v is Layer{
  if(v.type==='pattern'&&v.pattern!==undefined&&!validDocument(v.pattern))return false;
  if(v.type==='text'){
   if(v.text!==undefined&&!string(v.text,10000))return false;
+  if(v.fontFamily!==undefined&&(!string(v.fontFamily,80)||!GOOGLE_FONTS.some(f=>f.family===v.fontFamily)))return false;
+  if(v.fontWeight!==undefined&&!finite(v.fontWeight,100,900))return false;
+  if(v.fill!==undefined&&!color(v.fill))return false;
+  if(v.rotation!==undefined&&!finite(v.rotation,-36000,36000))return false;
   for(const key of ['x','y','fontSize'] as const)if(v[key]!==undefined&&!finite(v[key],-10000,10000))return false;
  }
  return true;
