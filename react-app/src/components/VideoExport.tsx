@@ -1,6 +1,15 @@
 import {useState} from 'react';
 type Props={artboardSelector:string;duration:number;onTimeChange:(time:number)=>void;onComplete:()=>void};
 const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
+const nextFrame=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
+function drawCanvasLayer(ctx:CanvasRenderingContext2D,canvas:HTMLCanvasElement,artboard:HTMLElement){
+ const art=artboard.getBoundingClientRect(),rect=canvas.getBoundingClientRect();
+ if(!canvas.width||!canvas.height||!rect.width||!rect.height)return;
+ const x=(rect.left-art.left)/art.width*800,y=(rect.top-art.top)/art.height*800;
+ const w=rect.width/art.width*800,h=rect.height/art.height*800;
+ ctx.drawImage(canvas,x,y,w,h);
+}
+
 async function svgImage(svg:SVGSVGElement):Promise<HTMLImageElement>{
  const clone=svg.cloneNode(true) as SVGSVGElement;
  clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
@@ -43,16 +52,16 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete}:
    for(let i=0;i<total;i++){
     const t=i/fps;
     onTimeChange(t);
-    await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+    await nextFrame();await nextFrame();
     context.clearRect(0,0,800,800);
     const svg=artboard.querySelector<SVGSVGElement>('.artboard-base svg');
     if(svg){try{const image=await svgImage(svg);context.drawImage(image,0,0,800,800)}catch(error){console.warn('Fondo SVG omitido en este fotograma',error);context.fillStyle=getComputedStyle(artboard).backgroundColor||'#171717';context.fillRect(0,0,800,800)}}
     const gl=artboard.querySelector<HTMLCanvasElement>('.overlay-3d canvas');
-    if(gl)context.drawImage(gl,0,0,800,800);
+    if(gl)drawCanvasLayer(context,gl,artboard);
     const text=artboard.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay canvas');
-    text.forEach(c=>context.drawImage(c,0,0,800,800));
+    text.forEach(c=>drawCanvasLayer(context,c,artboard));
     const ink=artboard.querySelectorAll<HTMLCanvasElement>('.konva-overlay canvas');
-    ink.forEach(c=>context.drawImage(c,0,0,800,800));
+    ink.forEach(c=>drawCanvasLayer(context,c,artboard));
     await sleep(1000/fps);
     if(i%fps===0)setStatus('Grabando '+Math.min(duration,Math.round(t))+' / '+duration+' s');
    }
@@ -66,7 +75,7 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete}:
    const url=URL.createObjectURL(blob);
    const a=document.createElement('a');a.href=url;a.download='LAB-composicion-2D-3D.webm';a.click();
    setTimeout(()=>URL.revokeObjectURL(url),10000);
-   setStatus('Video WebM guardado ('+(blob.size/1048576).toFixed(1)+' MB)');
+   setStatus('Video WebM guardado ('+(blob.size/1048576).toFixed(1)+' MB). Comprueba la composición completa.');
   }else if(!failed)setStatus('La grabación terminó sin fotogramas');
   onComplete();setBusy(false);
  };
