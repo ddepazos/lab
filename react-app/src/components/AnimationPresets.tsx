@@ -11,13 +11,13 @@ export function AnimationPresets({layerId,layerType,layer,timeline,onChange,onPr
  const t=Math.max(.2,duration),v=Math.max(1,amount);
  const isText=layer.type==='text';
  const initialX=isText?(layer.x??400):0,initialY=isText?(layer.y??400):0;
- const initialRotation=layer.type==='pattern'?(layer.pattern?.rotation??0):0;
+ const initialRotation=layer.type==='pattern'?(layer.pattern?.rotation??0):(layer.rotation??0);
  const initialOpacity=layer.opacity??100;
  const initialSize=isText?(layer.fontSize??48):100;
  let property:Track['property']='x',values=[initialX,initialX+v,initialX];
  if(preset==='bounce-y'){property='y';values=[initialY,initialY-v,initialY]}
  if(preset==='spin-cw'||preset==='spin-ccw'){property='rotation';values=[initialRotation,initialRotation+(preset==='spin-cw'?360:-360)]}
- if(preset==='pulse'){property='scale';values=[initialSize,initialSize*(1+v/200),initialSize]}
+ if(preset==='pulse'){property=isText?'scale':'opacity';values=isText?[initialSize,initialSize*(1+v/200),initialSize]:[initialOpacity,Math.max(0,initialOpacity-v/2),initialOpacity]}
  if(preset==='fade'){property='opacity';values=[0,initialOpacity]}
  const keyframes=values.map((value,i)=>({time:i*t/(values.length-1),value,easing:'easeInOut' as const}));
  onChange({...timeline,duration:Math.max(t,timeline.duration),tracks:[...timeline.tracks.filter(track=>!(track.layerId===layerId&&track.property===property)),{layerId,property,keyframes}]});
