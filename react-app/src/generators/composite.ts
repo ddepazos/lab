@@ -31,6 +31,7 @@ export function composeSVG(background:string,layers:Layer[],fallback:StudioDocum
   let content='';
   if(l.type==='pattern'){const settings={...fallback,...l.pattern,background:'transparent'};const svg=settings.generator==='waves'?generateWavesSVG(settings):generateSVG(settings);content=svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'').replace(/<rect width="800" height="800" fill="transparent"\/>/,'');}
   if(l.type==='text')content=svgTextContent(l,fallback);
+  if(l.type==='image'&&l.imageSrc&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(l.imageSrc))content=`<image href="${l.imageSrc}" x="${l.x??0}" y="${l.y??0}" width="${l.imageWidth??200}" height="${l.imageHeight??200}" preserveAspectRatio="xMidYMid meet"/>`;
   const rotation=l.type==='pattern'?(l.pattern?.rotation??fallback.rotation??0):0;
   const scale=Math.max(.01,l.scale??1);
   const transform=l.type==='pattern'?` transform="translate(${l.x??0} ${l.y??0}) translate(400 400) rotate(${rotation}) scale(${scale}) translate(-400 -400)"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
