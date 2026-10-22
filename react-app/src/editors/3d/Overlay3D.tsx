@@ -27,7 +27,7 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
    plane:new THREE.PlaneGeometry(2.7,2.7,12,12)
   };
   const mesh=new THREE.Mesh(meshes[settingsRef.current.kind],material);scene.add(mesh);
-  let model:THREE.Group|null=null;let currentModelUrl='';let loadId=0;
+  let model:THREE.Group|null=null;let currentModelUrl='';let loadId=0;let modelBaseScale=1;
   const loader=new GLTFLoader();
   const resize=()=>{const side=Math.max(1,host.clientWidth);camera.aspect=1;camera.updateProjectionMatrix();renderer.setSize(side,side,false)};
   const observer=new ResizeObserver(resize);observer.observe(host);resize();
@@ -35,10 +35,10 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
   const loop=(t:number)=>{
    const s=settingsRef.current;
    if(mesh.geometry!==meshes[s.kind])mesh.geometry=meshes[s.kind];
-   if(s.modelUrl!==currentModelUrl){currentModelUrl=s.modelUrl??'';const id=++loadId;if(model){scene.remove(model);model=null;}mesh.visible=!currentModelUrl;if(currentModelUrl){loader.load(currentModelUrl,gltf=>{if(id!==loadId)return;model=gltf.scene;const bounds=new THREE.Box3().setFromObject(model);const extent=bounds.getSize(new THREE.Vector3());const largest=Math.max(extent.x,extent.y,extent.z,.001);model.scale.setScalar(2.5/largest);const center=bounds.getCenter(new THREE.Vector3());model.position.copy(center).multiplyScalar(-2.5/largest);scene.add(model);},undefined,error=>console.error('No se pudo cargar GLB/GLTF',error))}}
+   if(s.modelUrl!==currentModelUrl){currentModelUrl=s.modelUrl??'';const id=++loadId;if(model){scene.remove(model);model=null;}mesh.visible=!currentModelUrl;if(currentModelUrl){loader.load(currentModelUrl,gltf=>{if(id!==loadId)return;model=gltf.scene;const bounds=new THREE.Box3().setFromObject(model);const extent=bounds.getSize(new THREE.Vector3());const largest=Math.max(extent.x,extent.y,extent.z,.001);modelBaseScale=2.5/largest;model.scale.setScalar(modelBaseScale);const center=bounds.getCenter(new THREE.Vector3());model.position.copy(center).multiplyScalar(-2.5/largest);scene.add(model);},undefined,error=>console.error('No se pudo cargar GLB/GLTF',error))}}
    const mat=s.material;material.wireframe=mat==='wireframe';material.metalness=mat==='chrome'?1:mat==='metal'?.8:mat==='plastic'?.05:.1;material.roughness=mat==='chrome'?.08:mat==='metal'?.24:mat==='plastic'?.35:.9;
    material.color.set(s.color);material.opacity=s.opacity/100;
-   mesh.scale.setScalar(s.scale);if(model)model.scale.setScalar(s.scale*2.5/Math.max(new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()).length(),.001));
+   mesh.scale.setScalar(s.scale);if(model)model.scale.setScalar(s.scale*modelBaseScale);
    if(last&&s.playing){mesh.rotation[s.direction]+=Math.min(.05,(t-last)/1000)*s.speed;if(model)model.rotation[s.direction]+=Math.min(.05,(t-last)/1000)*s.speed;}
    last=t;
    renderer.render(scene,camera);
