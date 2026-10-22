@@ -14,6 +14,9 @@ export function validDocument(v:unknown):v is StudioDocument{
  if(!Array.isArray(v.active)||v.active.length>12||!v.active.every(x=>kinds.includes(x)))return false;
  if(!color(v.foreground)||!color(v.background))return false;
  if(v.generator!==undefined&&v.generator!=='grid'&&v.generator!=='waves')return false;
+ if(v.waveStyle!==undefined&&!['lines','dots','mesh'].includes(String(v.waveStyle)))return false;
+ if(v.waveDotSize!==undefined&&!finite(v.waveDotSize,0.5,16))return false;
+ if(v.waveMeshColumns!==undefined&&!finite(v.waveMeshColumns,4,120))return false;
  for(const [key,min,max] of [['waveAmplitude',0,150],['waveFrequency',0.1,16],['waveNoise',0,100],['waveLines',4,150]] as const){
   if(v[key]!==undefined&&!finite(v[key],min,max))return false;
  }
