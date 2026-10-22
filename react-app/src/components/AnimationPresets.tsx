@@ -10,7 +10,7 @@ export function AnimationPresets({layerId,layerType,layer,timeline,onChange,onPr
  const apply=()=>{if(!layerId||!layerType||!layer)return;
  const t=Math.max(.2,duration),v=Math.max(1,amount);
  const isText=layer.type==='text';
- const initialX=isText?(layer.x??400):0,initialY=isText?(layer.y??400):0;
+ const initialX=layer.x??(isText?400:0),initialY=layer.y??(isText?400:0);
  const initialRotation=layer.type==='pattern'?(layer.pattern?.rotation??0):(layer.rotation??0);
  const initialOpacity=layer.opacity??100;
  const initialSize=isText?(layer.fontSize??48):100;
