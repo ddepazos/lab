@@ -15,7 +15,8 @@
     "zustand": "^5.0.0",
     "three": "^0.180.0",
     "konva": "^10.0.0",
-    "react-konva": "^19.0.0"
+    "react-konva": "^19.0.0",
+    "mediabunny": "^1.62.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
