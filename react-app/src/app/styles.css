@@ -21,3 +21,9 @@
 .project-import{display:inline-flex;align-items:center;cursor:pointer;border:1px solid #555;border-radius:5px;padding:6px 9px;font-size:12px}.project-import input{display:none}
 
 .variations-panel{border-top:1px solid #444;margin-top:14px;padding-top:12px}.variation-item{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0}.variation-item button:first-child{flex:1;text-align:left}.tile:disabled{opacity:.4;cursor:not-allowed}
+
+/* Keep generated artwork stable while React renders live pen strokes above it. */
+.artboard{position:relative;overflow:hidden;user-select:none}
+.artboard-base,.artboard-ink{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.artboard-base svg{display:block;width:100%;height:100%}
+.artboard-ink{z-index:1}
