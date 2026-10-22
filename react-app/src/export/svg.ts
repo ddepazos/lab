@@ -1,0 +1,1 @@
+export function downloadSVG(svg:string,filename='lab-composicion.svg'){const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}

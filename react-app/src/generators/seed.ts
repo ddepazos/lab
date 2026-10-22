@@ -1,0 +1,1 @@
+export function randomAt(seed:number,index:number):number {let t=(seed ^ Math.imul(index+1,0x9e3779b1))>>>0;t=Math.imul(t^(t>>>16),0x85ebca6b);t=Math.imul(t^(t>>>13),0xc2b2ae35);return ((t^(t>>>16))>>>0)/4294967296;}
