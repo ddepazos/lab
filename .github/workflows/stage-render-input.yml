@@ -1,11 +1,13 @@
-name: LAB upload render input
+name: LAB create render test input
 on:
   workflow_dispatch:
     inputs:
-      source_url:
-        description: "Public HTTPS URL of a video file (no credentials or private URLs)"
+      seconds:
+        description: "Test video duration in seconds"
+        type: choice
+        options: ["3", "5", "10"]
+        default: "3"
         required: true
-        type: string
 
 permissions:
   contents: read
@@ -15,41 +17,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Validate URL
+      - name: Create sample video with FFmpeg
         env:
-          SOURCE_URL: ${{ inputs.source_url }}
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import os, ipaddress, socket, urllib.parse
-          u = urllib.parse.urlsplit(os.environ["SOURCE_URL"])
-          if u.scheme != "https" or not u.hostname or u.username or u.password or u.port not in (None, 443):
-              raise SystemExit("Only public HTTPS URLs without credentials are allowed")
-          if len(os.environ["SOURCE_URL"]) > 2048:
-              raise SystemExit("URL too long")
-          if u.hostname.lower() in ("localhost",) or u.hostname.lower().endswith((".local", ".internal")):
-              raise SystemExit("Private host is forbidden")
-          for entry in socket.getaddrinfo(u.hostname, 443, type=socket.SOCK_STREAM):
-              ip = ipaddress.ip_address(entry[4][0])
-              if not ip.is_global:
-                  raise SystemExit("URL resolves to non-public IP")
-          PY
-      - name: Download public video
-        env:
-          SOURCE_URL: ${{ inputs.source_url }}
-        shell: bash
+          SECONDS: ${{ inputs.seconds }}
         run: |
           set -euo pipefail
           mkdir -p input
-          # Disallow redirects and bound download time and size.
-          curl --fail --silent --show-error --location-trusted=false --max-redirs 0 --max-time 120 --connect-timeout 10 --max-filesize 104857600 --output input/source.mp4 "$SOURCE_URL"
-          test -s input/source.mp4
-          test "$(stat -c %s input/source.mp4)" -le 104857600
-          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 input/source.mp4 | grep -q .
+          ffmpeg -hide_banner -nostdin -y -f lavfi -i "testsrc2=size=800x800:rate=30" -t "$SECONDS" -c:v libx264 -pix_fmt yuv420p input/LAB-test-input.mp4
+          ffprobe -v error -show_entries stream=width,height,r_frame_rate -of default=noprint_wrappers=1 input/LAB-test-input.mp4
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
         with:
           name: lab-render-input
-          path: input/source.mp4
+          path: input/LAB-test-input.mp4
           if-no-files-found: error
           retention-days: 1
