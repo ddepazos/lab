@@ -1,10 +1,22 @@
 import {useState} from 'react';
 type Props={artboardSelector:string;duration:number;onTimeChange:(time:number)=>void;onComplete:()=>void};
 const sleep=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
-async function svgBitmap(svg:SVGSVGElement):Promise<ImageBitmap>{
- const xml=new XMLSerializer().serializeToString(svg);
- const blob=new Blob([xml],{type:'image/svg+xml'});
- return createImageBitmap(blob);
+async function svgImage(svg:SVGSVGElement):Promise<HTMLImageElement>{
+ const clone=svg.cloneNode(true) as SVGSVGElement;
+ clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+ clone.setAttribute('width','800');clone.setAttribute('height','800');
+ const xml=new XMLSerializer().serializeToString(clone);
+ const blob=new Blob([xml],{type:'image/svg+xml;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ try{
+  const image=new Image();
+  await new Promise<void>((resolve,reject)=>{
+   image.onload=()=>resolve();
+   image.onerror=()=>reject(new Error('No se pudo decodificar el SVG del fondo'));
+   image.src=url;
+  });
+  return image;
+ }finally{URL.revokeObjectURL(url)}
 }
 export function VideoExport({artboardSelector,duration,onTimeChange,onComplete}:Props){
  const [busy,setBusy]=useState(false),[status,setStatus]=useState('');
@@ -34,7 +46,7 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete}:
     await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
     context.clearRect(0,0,800,800);
     const svg=artboard.querySelector<SVGSVGElement>('.artboard-base svg');
-    if(svg){const bitmap=await svgBitmap(svg);context.drawImage(bitmap,0,0,800,800);bitmap.close()}
+    if(svg){try{const image=await svgImage(svg);context.drawImage(image,0,0,800,800)}catch(error){console.warn('Fondo SVG omitido en este fotograma',error);context.fillStyle=getComputedStyle(artboard).backgroundColor||'#171717';context.fillRect(0,0,800,800)}}
     const gl=artboard.querySelector<HTMLCanvasElement>('.overlay-3d canvas');
     if(gl)context.drawImage(gl,0,0,800,800);
     const text=artboard.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay canvas');
