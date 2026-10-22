@@ -29,6 +29,10 @@ export function validLayer(v:unknown):v is Layer{
   if(v.fontWeight!==undefined&&!finite(v.fontWeight,100,900))return false;
   if(v.fill!==undefined&&!color(v.fill))return false;
   if(v.rotation!==undefined&&!finite(v.rotation,-36000,36000))return false;
+  if(v.textMode!==undefined&&!['point','area'].includes(String(v.textMode)))return false;
+  if(v.textWidth!==undefined&&!finite(v.textWidth,40,800))return false;
+  if(v.lineHeight!==undefined&&!finite(v.lineHeight,0.5,4))return false;
+  if(v.textAlign!==undefined&&!['left','center','right'].includes(String(v.textAlign)))return false;
   for(const key of ['x','y','fontSize'] as const)if(v[key]!==undefined&&!finite(v[key],-10000,10000))return false;
  }
  return true;
