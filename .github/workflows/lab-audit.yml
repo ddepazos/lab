@@ -20,8 +20,6 @@ jobs:
         env:
           LAB_URL: https://ddepazos.github.io/lab/
         run: npx playwright test audit/*.spec.cjs --reporter=line
-      - name: Scrape allowed public reference metadata
-        run: node audit/scrape-references.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
