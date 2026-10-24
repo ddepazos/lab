@@ -1,0 +1,51 @@
+name: LAB remote render - credential preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  auth-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Validate Cloudflare runner credentials without creating a job
+        env:
+          LAB_RENDER_API_URL: ${{ vars.LAB_RENDER_API_URL }}
+          LAB_RUNNER_TOKEN: ${{ secrets.LAB_RUNNER_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$LAB_RENDER_API_URL"
+          test -n "$LAB_RUNNER_TOKEN"
+          python3 - <<'PY'
+          import os
+          import urllib.request
+          import urllib.error
+          from urllib.parse import urlsplit
+          base = os.environ["LAB_RENDER_API_URL"].rstrip("/")
+          token = os.environ["LAB_RUNNER_TOKEN"]
+          parsed = urlsplit(base)
+          if parsed.scheme != "https" or parsed.hostname != "lab-render-api.ddepazosdesanmartin.workers.dev" or parsed.path not in ("", "/"):
+              raise SystemExit("Unexpected Worker URL")
+          if len(token) < 32:
+              raise SystemExit("Runner token is not configured correctly")
+          # A nonexistent UUID: valid token => 404, invalid token => 401.
+          req = urllib.request.Request(
+              base + "/internal/jobs/00000000-0000-0000-0000-000000000000",
+              headers={"Authorization": "Bearer " + token},
+              method="GET",
+          )
+          try:
+              urllib.request.urlopen(req, timeout=20)
+          except urllib.error.HTTPError as e:
+              if e.code == 404:
+                  print("PASS: GitHub runner token accepted by Cloudflare; nonexistent job returned 404.")
+              elif e.code == 401:
+                  raise SystemExit("FAIL: GitHub and Cloudflare runner tokens do not match")
+              else:
+                  raise SystemExit(f"FAIL: unexpected HTTP {e.code}")
+          else:
+              raise SystemExit("FAIL: nonexistent job unexpectedly exists")
+          PY
