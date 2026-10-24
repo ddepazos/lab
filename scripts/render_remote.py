@@ -14,7 +14,7 @@ JOB_RE = re.compile(r"^[0-9a-fA-F-]{36}$")
 
 
 def request(base, token, method, path, payload=None, content_type=None):
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}", "User-Agent": "LAB-Render-Runner/1.0", "Accept": "application/json"}
     if content_type:
         headers["Content-Type"] = content_type
     req = urllib.request.Request(base + path, data=payload, headers=headers, method=method)
