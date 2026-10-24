@@ -1,4 +1,4 @@
-name: LAB create render test input
+﻿name: LAB create render test input
 on:
   workflow_dispatch:
     inputs:
@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Install FFmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
       - name: Create sample video with FFmpeg
         env:
           SECONDS: ${{ inputs.seconds }}
@@ -32,3 +34,4 @@ jobs:
           path: input/LAB-test-input.mp4
           if-no-files-found: error
           retention-days: 1
+
