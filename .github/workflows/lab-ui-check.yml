@@ -1,5 +1,10 @@
 name: LAB React UI checks
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'react-app/**'
+      - '.github/workflows/lab-ui-check.yml'
   pull_request:
     paths:
       - 'react-app/**'
