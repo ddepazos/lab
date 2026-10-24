@@ -16,12 +16,12 @@ export function generateWavesSVG(doc:StudioDocument):string{
  const dotRadius=clamp(doc.waveDotSize??2,0.5,16);
  const meshColumns=Math.round(clamp(doc.waveMeshColumns??30,4,120));
  const meshPoints:number[][]=[];
+ const step=w/100;
  for(let row=0;row<count;row++){
   const baseline=(row+0.5)*h/count;
   const phase=randomAt(doc.seed,row*13)*Math.PI*2;
   const points:string[]=[];
   const rowValues:number[]=[];
-  const step=w/100;
   for(let index=0;index<=100;index++){const x=index*step;
    const t=x/w;
    const envelope=Math.pow(Math.max(0,Math.sin(Math.PI*t)),0.2+decay*3);
