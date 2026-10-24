@@ -32,6 +32,8 @@ export function generateWavesSVG(doc:StudioDocument):string{
    rowValues.push(y);
   }
   meshPoints.push(rowValues);
+  if(style==='ribbons')paths.push('<path d="'+points.join(' ')+' L800 '+(baseline+amplitude*.45).toFixed(2)+' L0 '+(baseline+amplitude*.45).toFixed(2)+' Z" fill="'+doc.foreground+'" opacity="0.7"/>');
+  if(style==='contours'&&row%3===0)paths.push('<path d="'+points.join(' ')+'" fill="none" stroke="'+doc.foreground+'" stroke-width="'+(strokeWidth*2).toFixed(2)+'"/>');
   if(style==='lines')paths.push('<path d="'+points.join(' ')+'" fill="none" stroke="'+doc.foreground+'" stroke-width="'+strokeWidth+'"/>');
   if(style==='dots')for(let i=0;i<rowValues.length;i+=2){paths.push('<circle cx="'+(i*8)+'" cy="'+rowValues[i].toFixed(2)+'" r="'+dotRadius+'" fill="'+doc.foreground+'"/>');}
  }
