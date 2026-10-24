@@ -26,8 +26,8 @@ export function AnimationPresets({layerId,layerType,layer,timeline,onChange,onPr
  if(preset==='blink'){property='opacity';values=[initialOpacity,0,initialOpacity,0,initialOpacity]}
  if(preset==='zoom-in'){property='scale';values=[Math.max(.01,initialScale*.2),initialScale]}
  if(preset==='drift'){property='x';values=[initialX,initialX+v]}
- const keyframes=values.map((value,i)=>({time:i*t/(values.length-1),value,easing:'easeInOut' as const}));
- onChange({...timeline,duration:Math.max(t,timeline.duration),tracks:[...timeline.tracks.filter(track=>!(track.layerId===layerId&&track.property===property)),{layerId,property,keyframes}]});
+ const keyframes=preset==='blink'?Array.from({length:9},(_,i)=>({time:i*t/8,value:i%2===0?initialOpacity:0,easing:'linear' as const})):values.map((value,i)=>({time:i*t/(values.length-1),value,easing:'easeInOut' as const}));
+ onChange({...timeline,duration:t,tracks:[...timeline.tracks.filter(track=>!(track.layerId===layerId&&track.property===property)),{layerId,property,keyframes}]});
  onPreview?.();
  };
  return <section className="animation-presets"><h2>Movimiento · Presets</h2><p className="note">{layer?`Capa seleccionada: ${layer.name}${layer.locked?" (bloqueada)":""}`:"Selecciona una capa para aplicar un efecto."} · {activeTracks.length} pista(s) activas</p><label>Efecto<select value={preset} onChange={e=>setPreset(e.target.value as Preset)}>{presets.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><label>Duración: {duration}s<input type="range" min=".5" max="10" step=".5" value={duration} onChange={e=>setDuration(Number(e.target.value))}/></label><label>Intensidad: {amount}<input type="range" min="5" max="180" value={amount} onChange={e=>setAmount(Number(e.target.value))}/></label><button disabled={!canEdit} onClick={apply}>+ Aplicar a capa</button><button disabled={!canEdit||!activeTracks.length} onClick={()=>{onChange({...timeline,tracks:timeline.tracks.filter(t=>t.layerId!==layerId)});onPreview?.();}}>Quitar animaciones de capa</button><p className="note">Al aplicar un movimiento se inicia una vista previa desde el comienzo.</p></section>
