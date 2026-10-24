@@ -27,15 +27,16 @@ function svgTextContent(layer:Layer,fallback:StudioDocument):string{
  return '<text font-size="'+size+'" text-anchor="'+anchor+'" font-family="'+family+',sans-serif" font-weight="'+(layer.fontWeight??700)+'" fill="'+fill+'" transform="rotate('+(layer.rotation??0)+' '+x+' '+y+')">'+spans+'</text>';
 }
 export function composeSVG(background:string,layers:Layer[],fallback:StudioDocument):string {
+ const width=Math.max(100,Math.min(8192,fallback.canvasWidth??800));const height=Math.max(100,Math.min(8192,fallback.canvasHeight??800));const factor=Math.min(width,height)/800;const offsetX=(width-800*factor)/2,offsetY=(height-800*factor)/2;
  const parts=layers.filter(l=>l.visible).map(l=>{
   let content='';
-  if(l.type==='pattern'){const settings={...fallback,...l.pattern,background:'transparent'};const svg=settings.generator==='waves'?generateWavesSVG(settings):generateSVG(settings);content=svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'').replace(/<rect width="800" height="800" fill="transparent"\/>/,'');}
+  if(l.type==='pattern'){const settings={...fallback,...l.pattern,canvasWidth:width,canvasHeight:height,background:'transparent'};const svg=settings.generator==='waves'?generateWavesSVG(settings):generateSVG(settings);content=svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'').replace(/<rect width="[^"]+" height="[^"]+" fill="transparent"\/>/,'');}
   if(l.type==='text')content=svgTextContent(l,fallback);
   if(l.type==='image'&&l.imageSrc&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(l.imageSrc))content=`<image href="${l.imageSrc}" x="${l.x??0}" y="${l.y??0}" width="${l.imageWidth??200}" height="${l.imageHeight??200}" preserveAspectRatio="xMidYMid meet"/>`;
   const rotation=l.type==='pattern'?(l.pattern?.rotation??fallback.rotation??0):0;
   const scale=Math.max(.01,l.scale??1);
   const transform=l.type==='pattern'?` transform="translate(${l.x??0} ${l.y??0}) translate(400 400) rotate(${rotation}) scale(${scale}) translate(-400 -400)"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
-  return `<g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g>`;
+  return `<g${l.type==='pattern'?'':`transform="translate(${offsetX} ${offsetY}) scale(${factor})"`}><g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g></g>`;
  });
- return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800"><rect width="800" height="800" fill="${background}"/>${parts.join('')}</svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${background}"/>${parts.join('')}</svg>`;
 }
