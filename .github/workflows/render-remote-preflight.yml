@@ -34,7 +34,7 @@ jobs:
           # A nonexistent UUID: valid token => 404, invalid token => 401.
           req = urllib.request.Request(
               base + "/internal/jobs/00000000-0000-0000-0000-000000000000",
-              headers={"Authorization": "Bearer " + token},
+              headers={"Authorization": "Bearer " + token, "User-Agent": "LAB-Render-Runner/1.0", "Accept": "application/json"},
               method="GET",
           )
           try:
@@ -45,7 +45,8 @@ jobs:
               elif e.code == 401:
                   raise SystemExit("FAIL: GitHub and Cloudflare runner tokens do not match")
               else:
-                  raise SystemExit(f"FAIL: unexpected HTTP {e.code}")
+                  body = e.read(300).decode("utf-8", errors="replace")
+                  raise SystemExit(f"FAIL: unexpected HTTP {e.code}; response: {body[:160]}")
           else:
               raise SystemExit("FAIL: nonexistent job unexpectedly exists")
           PY
