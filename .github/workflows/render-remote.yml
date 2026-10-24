@@ -1,0 +1,43 @@
+name: LAB remote render (Cloudflare R2)
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: "UUID of job staged in Cloudflare R2"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lab-remote-${{ inputs.job_id }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Validate job id and configuration
+        shell: bash
+        env:
+          LAB_JOB_ID: ${{ inputs.job_id }}
+          LAB_RENDER_API_URL: ${{ vars.LAB_RENDER_API_URL }}
+          LAB_RUNNER_TOKEN: ${{ secrets.LAB_RUNNER_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ "$LAB_JOB_ID" =~ ^[0-9a-fA-F-]{36}$ ]] || { echo "Invalid job ID"; exit 1; }
+          [[ "$LAB_RENDER_API_URL" == https://* ]] || { echo "Missing or invalid API URL"; exit 1; }
+          [[ -n "$LAB_RUNNER_TOKEN" ]] || { echo "Missing runner token"; exit 1; }
+      - uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Encode remote PNG frames and upload MP4
+        env:
+          LAB_JOB_ID: ${{ inputs.job_id }}
+          LAB_RENDER_API_URL: ${{ vars.LAB_RENDER_API_URL }}
+          LAB_RUNNER_TOKEN: ${{ secrets.LAB_RUNNER_TOKEN }}
+        run: python3 scripts/render_remote.py
