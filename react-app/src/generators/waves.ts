@@ -41,7 +41,7 @@ export function generateWavesSVG(doc:StudioDocument):string{
  if(style==='mesh'){
   for(let row=0;row<meshPoints.length;row++){
    const values=meshPoints[row];
-   paths.push('<path d="'+values.map((y,i)=>(i?'L':'M')+(i*8)+' '+y.toFixed(2)).join(' ')+'" fill="none" stroke="'+doc.foreground+'" stroke-width="'+strokeWidth+'"/>');
+   paths.push('<path d="'+values.map((y,i)=>(i?'L':'M')+(i*w/100)+' '+y.toFixed(2)).join(' ')+'" fill="none" stroke="'+doc.foreground+'" stroke-width="'+strokeWidth+'"/>');
   }
   for(let column=0;column<=meshColumns;column++){
    const x=column*w/meshColumns,idx=Math.min(100,Math.round(x/step));
