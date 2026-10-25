@@ -1,0 +1,74 @@
+name: LAB Browser Smoke Test
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'react-app/**'
+      - '.github/workflows/lab-browser-smoke.yml'
+  pull_request:
+    paths:
+      - 'react-app/**'
+      - '.github/workflows/lab-browser-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: react-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: react-app/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build and test
+        run: |
+          npm run build
+          npm test
+      - name: Install Playwright browser runner without changing lockfile
+        run: |
+          npm install --no-save --package-lock=false --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start preview and smoke-test rendering
+        shell: bash
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/lab-preview.log 2>&1 &
+          node --input-type=module <<'JS'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({headless:true});
+          const page = await browser.newPage();
+          const errors=[];
+          page.on('pageerror', e=>errors.push(e.message));
+          let ready=false;
+          for(let i=0;i<40;i++){
+            try { const r=await fetch('http://127.0.0.1:4173/'); if(r.ok){ready=true;break;} } catch {}
+            await new Promise(r=>setTimeout(r,500));
+          }
+          if(!ready) throw Error('Preview server unavailable');
+          const response=await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+          await page.screenshot({path:'lab-smoke.png',fullPage:true});
+          if(!response?.ok()) throw Error('HTTP response failed');
+          if(!(await page.locator('body').isVisible())) throw Error('App body not visible');
+          if(errors.length) throw Error('Uncaught browser errors: '+errors.join(' | '));
+          console.log('LAB smoke check passed');
+          await browser.close();
+          JS
+      - name: Functional Playwright checks
+        run: node scripts/browser-functional.mjs
+      - name: Upload screenshot and server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-browser-smoke
+          path: |
+            react-app/lab-smoke.png
+            react-app/test-results/
+            /tmp/lab-preview.log
+          if-no-files-found: ignore

@@ -13,6 +13,8 @@ export function validDocument(v:unknown):v is StudioDocument{
  if(!finite(v.seed,0,999999999)||!finite(v.columns,1,100)||!finite(v.rows,1,100)||!finite(v.density,0,100)||!finite(v.mix,0,100)||!finite(v.rotation,-36000,36000))return false;
  if(!Array.isArray(v.active)||v.active.length>12||!v.active.every(x=>kinds.includes(x)))return false;
  if(!color(v.foreground)||!color(v.background))return false;
+ if(v.canvasWidth!==undefined&&!finite(v.canvasWidth,100,8192))return false;
+ if(v.canvasHeight!==undefined&&!finite(v.canvasHeight,100,8192))return false;
  if(v.generator!==undefined&&v.generator!=='grid'&&v.generator!=='waves')return false;
  if(v.waveStyle!==undefined&&!['lines','dots','mesh'].includes(String(v.waveStyle)))return false;
  if(v.waveDotSize!==undefined&&!finite(v.waveDotSize,0.5,16))return false;
