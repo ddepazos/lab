@@ -1,0 +1,45 @@
+name: LAB Branch Audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 9 * * 1'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect branch divergence without mutations
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.parse
+          repo = os.environ['GH_REPO']
+          token = os.environ['GH_TOKEN']
+          def get(path):
+              req = urllib.request.Request('https://api.github.com/repos/'+repo+path, headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req) as r: return json.load(r)
+          branches=[]
+          page=1
+          while True:
+              batch=get('/branches?per_page=100&page='+str(page))
+              branches.extend(b['name'] for b in batch)
+              if len(batch)<100: break
+              page+=1
+          rows=[]
+          for name in branches:
+              if name=='main': continue
+              try:
+                  d=get('/compare/main...'+urllib.parse.quote(name,safe=''))
+                  rows.append((name,d.get('status','unknown'),d.get('ahead_by',0),d.get('behind_by',0)))
+              except Exception as e:
+                  rows.append((name,'ERROR',0,0))
+          report=['# LAB branch audit','','No branches were modified or deleted.','','| Branch | Status | Ahead | Behind |','|---|---|---:|---:|']
+          for n,s,a,b in rows: report.append(f'| {n} | {s} | {a} | {b} |')
+          report.extend(['','A branch with zero ahead commits is only a deletion candidate, not automatically safe to delete. Review workflows, PRs and deployment dependencies first.'])
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f: f.write('\n'.join(report)+'\n')
+          print('\n'.join(report))
+          PY
