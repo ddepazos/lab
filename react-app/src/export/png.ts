@@ -1,8 +1,35 @@
+/** Rasterize the SVG at its document aspect ratio, independent of CSS preview size. */
 export async function downloadPNG(svg:string,filename='LAB-composicion.png',size=1600):Promise<void>{
- const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);
- try{const img=new Image();await new Promise<void>((resolve,reject)=>{img.onload=()=>resolve();img.onerror=()=>reject(new Error('No se pudo renderizar el SVG'));img.src=url;});
- const canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas no disponible');ctx.drawImage(img,0,0,size,size);
- const png=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Error al exportar PNG')),'image/png'));
- const link=document.createElement('a');const pngUrl=URL.createObjectURL(png);link.href=pngUrl;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(pngUrl),1000);
+ const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ try{
+  const img=new Image();
+  await new Promise<void>((resolve,reject)=>{
+   img.onload=()=>resolve();
+   img.onerror=()=>reject(new Error('No se pudo renderizar el SVG'));
+   img.src=url;
+  });
+  const doc=new DOMParser().parseFromString(svg,'image/svg+xml');
+  const root=doc.documentElement;
+  const viewBox=root.getAttribute('viewBox')?.trim().split(/[\\s,]+/).map(Number);
+  const widthAttr=Number.parseFloat(root.getAttribute('width')??'');
+  const heightAttr=Number.parseFloat(root.getAttribute('height')??'');
+  const sourceWidth=viewBox?.length===4&&viewBox[2]>0?viewBox[2]:widthAttr>0?widthAttr:img.naturalWidth;
+  const sourceHeight=viewBox?.length===4&&viewBox[3]>0?viewBox[3]:heightAttr>0?heightAttr:img.naturalHeight;
+  if(!(sourceWidth>0&&sourceHeight>0))throw new Error('Dimensiones SVG no válidas');
+  // The requested size is the longest edge. Never stretch a non-square canvas.
+  const scale=Math.max(1,Math.round(size))/Math.max(sourceWidth,sourceHeight);
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(sourceWidth*scale));
+  canvas.height=Math.max(1,Math.round(sourceHeight*scale));
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw new Error('Canvas no disponible');
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  const png=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Error al exportar PNG')),'image/png'));
+  const pngUrl=URL.createObjectURL(png);
+  try{
+   const link=document.createElement('a');
+   link.href=pngUrl;link.download=filename;link.click();
+  }finally{setTimeout(()=>URL.revokeObjectURL(pngUrl),1000);}
  }finally{URL.revokeObjectURL(url);}
 }
