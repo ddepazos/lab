@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {videoDimensions} from '../export/videoDimensions';
 import {BufferTarget,CanvasSource,Mp4OutputFormat,WebMOutputFormat,Output,Quality,Input,BlobSource,ALL_FORMATS} from 'mediabunny';
 type Props={artboardSelector:string;duration:number;onTimeChange:(time:number)=>void;onComplete:()=>void;onExportStateChange?:(busy:boolean)=>void};
 const raf=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
@@ -41,10 +42,9 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
   try{
    const sourceSvg=board.querySelector<SVGSVGElement>('.artboard-base svg');
    const vb=sourceSvg?.viewBox.baseVal;
-   const ratio=vb&&vb.width>0&&vb.height>0?vb.width/vb.height:board.clientWidth/Math.max(1,board.clientHeight);
-   // Use even dimensions for H.264 while preserving the document aspect ratio.
-   const exportWidth=ratio>=1?resolution:Math.max(2,Math.round(resolution*ratio/2)*2);
-   const exportHeight=ratio>=1?Math.max(2,Math.round(resolution/ratio/2)*2):resolution;
+   const sourceWidth=vb&&vb.width>0?vb.width:Math.max(1,board.clientWidth);
+   const sourceHeight=vb&&vb.height>0?vb.height:Math.max(1,board.clientHeight);
+   const {width:exportWidth,height:exportHeight}=videoDimensions(resolution,sourceWidth,sourceHeight);
    const canvas=document.createElement('canvas');canvas.width=exportWidth;canvas.height=exportHeight;
    const ctx=canvas.getContext('2d',{alpha:false});
    
