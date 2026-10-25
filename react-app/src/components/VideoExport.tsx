@@ -2,15 +2,15 @@ import {useState} from 'react';
 import {BufferTarget,CanvasSource,Mp4OutputFormat,WebMOutputFormat,Output,Quality,Input,BlobSource,ALL_FORMATS} from 'mediabunny';
 type Props={artboardSelector:string;duration:number;onTimeChange:(time:number)=>void;onComplete:()=>void;onExportStateChange?:(busy:boolean)=>void};
 const raf=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
-function drawCanvas(ctx:CanvasRenderingContext2D,canvas:HTMLCanvasElement,board:HTMLElement){
+function drawCanvas(ctx:CanvasRenderingContext2D,canvas:HTMLCanvasElement,board:HTMLElement,width:number,height:number){
  const a=board.getBoundingClientRect(),r=canvas.getBoundingClientRect();
  if(!a.width||!a.height||!r.width||!r.height||!canvas.width||!canvas.height)return;
- ctx.drawImage(canvas,(r.left-a.left)/a.width*800,(r.top-a.top)/a.height*800,r.width/a.width*800,r.height/a.height*800);
+ ctx.drawImage(canvas,(r.left-a.left)/a.width*width,(r.top-a.top)/a.height*height,r.width/a.width*width,r.height/a.height*height);
 }
-function imageFromSvg(svg:SVGSVGElement,size:number):Promise<HTMLImageElement>{
+function imageFromSvg(svg:SVGSVGElement,width:number,height:number):Promise<HTMLImageElement>{
  const clone=svg.cloneNode(true) as SVGSVGElement;
  clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
- clone.setAttribute('width',String(size));clone.setAttribute('height',String(size));
+ clone.setAttribute('width',String(width));clone.setAttribute('height',String(height));
  const blob=new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml;charset=utf-8'});
  const url=URL.createObjectURL(blob);
  return new Promise((resolve,reject)=>{
@@ -39,9 +39,15 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
   const total=Math.round(seconds*fps);
   setBusy(true);onExportStateChange?.(true);setStatus('Preparando '+total+' fotogramas…');
   try{
-   const canvas=document.createElement('canvas');canvas.width=resolution;canvas.height=resolution;
+   const sourceSvg=board.querySelector<SVGSVGElement>('.artboard-base svg');
+   const vb=sourceSvg?.viewBox.baseVal;
+   const ratio=vb&&vb.width>0&&vb.height>0?vb.width/vb.height:board.clientWidth/Math.max(1,board.clientHeight);
+   // Use even dimensions for H.264 while preserving the document aspect ratio.
+   const exportWidth=ratio>=1?resolution:Math.max(2,Math.round(resolution*ratio/2)*2);
+   const exportHeight=ratio>=1?Math.max(2,Math.round(resolution/ratio/2)*2):resolution;
+   const canvas=document.createElement('canvas');canvas.width=exportWidth;canvas.height=exportHeight;
    const ctx=canvas.getContext('2d',{alpha:false});
-   ctx?.scale(resolution/800,resolution/800);
+   
    if(!ctx)throw new Error('No se pudo crear el canvas de exportación');
    await document.fonts.ready;
    await raf();await raf();
@@ -59,16 +65,16 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
     const svg=board.querySelector<SVGSVGElement>('.artboard-base svg');
     if(!svg)throw new Error('Falta el SVG del fondo');
     const markup=svg.outerHTML;
-    if(markup!==previousSvg){previousImage=await imageFromSvg(svg,resolution);previousSvg=markup}
-    ctx.fillStyle='#171717';ctx.fillRect(0,0,800,800);
-    if(previousImage)ctx.drawImage(previousImage,0,0,800,800);
+    if(markup!==previousSvg){previousImage=await imageFromSvg(svg,exportWidth,exportHeight);previousSvg=markup}
+    ctx.fillStyle='#171717';ctx.fillRect(0,0,exportWidth,exportHeight);
+    if(previousImage)ctx.drawImage(previousImage,0,0,exportWidth,exportHeight);
     else throw new Error('No se pudo componer el fondo SVG');
     window.dispatchEvent(new CustomEvent('lab:render-3d-frame',{detail:{time:t}}));
     const gl=board.querySelector<HTMLCanvasElement>('.overlay-3d canvas');
-    if(gl)drawCanvas(ctx,gl,board);
-    board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay .konvajs-content canvas').forEach(c=>drawCanvas(ctx,c,board));
-    board.querySelectorAll<HTMLCanvasElement>('.konva-overlay .konvajs-content canvas').forEach(c=>drawCanvas(ctx,c,board));
-    const pixels=ctx.getImageData(0,0,Math.min(resolution,800),Math.min(resolution,800)).data;
+    if(gl)drawCanvas(ctx,gl,board,exportWidth,exportHeight);
+    board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay .konvajs-content canvas').forEach(c=>drawCanvas(ctx,c,board,exportWidth,exportHeight));
+    board.querySelectorAll<HTMLCanvasElement>('.konva-overlay .konvajs-content canvas').forEach(c=>drawCanvas(ctx,c,board,exportWidth,exportHeight));
+    const pixels=ctx.getImageData(0,0,Math.min(exportWidth,800),Math.min(exportHeight,800)).data;
     let variation=false;
     for(let k=0;k<pixels.length;k+=4096){if(pixels[k]!==pixels[0]||pixels[k+1]!==pixels[1]||pixels[k+2]!==pixels[2]){variation=true;break}}
     if(variation)visibleFrames++;
@@ -86,9 +92,9 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
    const actualDuration=await check.computeDuration();
    if(!Number.isFinite(actualDuration)||Math.abs(actualDuration-seconds)>Math.max(.15,2/fps))throw new Error('Duración inválida: '+actualDuration.toFixed(2)+' s en lugar de '+seconds+' s. No se descargó el archivo.');
    download(blob,format);
-   setStatus('Exportación completada: '+seconds+' s · '+resolution+' × '+resolution+' · '+total+' fotogramas · '+(bytes.byteLength/1048576).toFixed(1)+' MB');
+   setStatus('Exportación completada: '+seconds+' s · '+exportWidth+' × '+exportHeight+' · '+total+' fotogramas · '+(bytes.byteLength/1048576).toFixed(1)+' MB');
   }catch(error){console.error('LAB export',error);setStatus('Error: '+(error instanceof Error?error.message:String(error)))}
   finally{window.dispatchEvent(new Event('lab:export-end'));onComplete();onExportStateChange?.(false);setBusy(false)}
  };
- return <section className="video-export"><h2>Exportar animación</h2><label>Formato<select value={format} disabled={busy} onChange={e=>setFormat(e.target.value as 'mp4'|'webm')}><option value="mp4">MP4</option><option value="webm">WebM</option></select></label><label>Resolución<select value={resolution} disabled={busy} onChange={e=>setResolution(Number(e.target.value))}><option value={800}>800 × 800 · Original</option><option value={1080}>1080 × 1080 · HD cuadrado</option><option value={2160}>2160 × 2160 · 4K cuadrado</option></select></label><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><button disabled={busy} onClick={record}>{busy?'Renderizando…':'↓ Exportar video'}</button><p role="status" className="note">{status||'Renderiza cada fotograma con tiempos exactos e incluye las capas 2D y 3D.'}</p></section>;
+ return <section className="video-export"><h2>Exportar animación</h2><label>Formato<select value={format} disabled={busy} onChange={e=>setFormat(e.target.value as 'mp4'|'webm')}><option value="mp4">MP4</option><option value="webm">WebM</option></select></label><label>Resolución<select value={resolution} disabled={busy} onChange={e=>setResolution(Number(e.target.value))}><option value={800}>800 px · lado mayor</option><option value={1080}>1080 px · lado mayor</option><option value={2160}>2160 px · lado mayor</option></select></label><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><button disabled={busy} onClick={record}>{busy?'Renderizando…':'↓ Exportar video'}</button><p role="status" className="note">{status||'Renderiza cada fotograma con tiempos exactos e incluye las capas 2D y 3D.'}</p></section>;
 }
