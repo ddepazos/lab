@@ -1,4 +1,6 @@
-﻿name: LAB create render test input
+
+name: LAB create render test input
+
 on:
   workflow_dispatch:
     inputs:
@@ -19,6 +21,7 @@ jobs:
     steps:
       - name: Install FFmpeg
         run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+
       - name: Create sample video with FFmpeg
         env:
           SECONDS: ${{ inputs.seconds }}
@@ -27,6 +30,7 @@ jobs:
           mkdir -p input
           ffmpeg -hide_banner -nostdin -y -f lavfi -i "testsrc2=size=800x800:rate=30" -t "$SECONDS" -c:v libx264 -pix_fmt yuv420p input/LAB-test-input.mp4
           ffprobe -v error -show_entries stream=width,height,r_frame_rate -of default=noprint_wrappers=1 input/LAB-test-input.mp4
+
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
         with:
@@ -34,4 +38,3 @@ jobs:
           path: input/LAB-test-input.mp4
           if-no-files-found: error
           retention-days: 1
-

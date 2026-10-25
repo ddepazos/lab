@@ -1,0 +1,47 @@
+name: LAB FFmpeg integration smoke test
+on:
+  push:
+    branches: [feat/github-actions-ffmpeg-render]
+    paths:
+      - '.github/workflows/ffmpeg-smoke-test.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ffmpeg-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install FFmpeg and FFprobe
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Verify FFmpeg availability
+        run: ffmpeg -version | head -n 1
+      - name: Generate test source and encode MP4/WebM
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output
+          ffmpeg -hide_banner -loglevel error -nostdin -y -f lavfi -i testsrc2=size=640x360:rate=24 -t 2 -c:v libx264 -pix_fmt yuv420p output/source.mp4
+          ffmpeg -hide_banner -loglevel error -nostdin -y -i output/source.mp4 -an -c:v libx264 -crf 18 -pix_fmt yuv420p output/LAB-render.mp4
+          ffmpeg -hide_banner -loglevel error -nostdin -y -i output/source.mp4 -an -c:v libvpx-vp9 -b:v 0 -crf 28 output/LAB-render.webm
+      - name: Validate outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nw=1:nk=1 output/LAB-render.mp4)" = h264
+          test "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nw=1:nk=1 output/LAB-render.webm)" = vp9
+          for f in output/LAB-render.mp4 output/LAB-render.webm; do
+            test -s "$f"
+            test "$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of default=nw=1:nk=1 "$f")" = 640
+            test "$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of default=nw=1:nk=1 "$f")" = 360
+          done
+      - name: Upload test outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-ffmpeg-smoke-test
+          path: |
+            output/LAB-render.mp4
+            output/LAB-render.webm
+          retention-days: 3
