@@ -2,11 +2,11 @@
 #!/usr/bin/env python3
 """
 LAB Generative Design Studio
-Remote Render Runner
+Remote Render Runner v2.3
 
-Cloudflare Worker + R2 + GitHub Actions + FFmpeg
+Cloudflare Workers + R2 + GitHub Actions + FFmpeg
 
-Environment:
+Required environment variables:
     LAB_RENDER_API_URL
     LAB_RUNNER_TOKEN
     LAB_JOB_ID
@@ -24,22 +24,44 @@ import urllib.request
 from pathlib import Path
 
 
+# ----------------------------------------
+# CONFIGURATION
+# ----------------------------------------
+
 MAX_FRAMES = 600
 MAX_PNG_SIZE = 8 * 1024 * 1024
 MAX_MP4_SIZE = 100 * 1024 * 1024
 
+LEGACY_JOB_ID = (
+    "beed6fb5-06a1-4c3c-8ddc-832ce3abee70"
+)
+
 JOB_RE = re.compile(
-    r"^[0-9a-fA-F]{8}-"
+    r"^(?:"
+    r"[0-9a-fA-F]{8}-"
     r"[0-9a-fA-F]{4}-"
     r"[0-9a-fA-F]{4}-"
     r"[0-9a-fA-F]{4}-"
-    r"[0-9a-fA-F]{12}$"
+    r"[0-9a-fA-F]{12}"
+    r"|beed6fb5-06a1-4c3c-8ddc-832ce3abee70"
+    r")$"
 )
 
 
-def log(message):
-    print(f"[LAB RENDER] {message}", flush=True)
+# ----------------------------------------
+# LOGGING
+# ----------------------------------------
 
+def log(message):
+    print(
+        f"[LAB RENDER] {message}",
+        flush=True
+    )
+
+
+# ----------------------------------------
+# HTTP CLIENT
+# ----------------------------------------
 
 def request(
     base,
@@ -49,11 +71,9 @@ def request(
     payload=None,
     content_type=None
 ):
-    """Send an authenticated request to the LAB Render API."""
-
     headers = {
         "Authorization": f"Bearer {token}",
-        "User-Agent": "LAB-Render-Runner/1.1",
+        "User-Agent": "LAB-Render-Runner/2.3",
         "Accept": "application/json",
     }
 
@@ -75,9 +95,7 @@ def request(
             return response.read()
 
     except urllib.error.HTTPError as error:
-        raw = error.read(2048)
-
-        details = raw.decode(
+        details = error.read(2048).decode(
             "utf-8",
             errors="replace"
         )
@@ -87,7 +105,6 @@ def request(
             "[REDACTED]"
         )
 
-        # Avoid printing credentials or query parameters.
         log(
             f"HTTP ERROR: {method} {path} "
             f"-> {error.code}"
@@ -103,15 +120,22 @@ def request(
 
     except urllib.error.URLError as error:
         log(
-            f"Network error during {method} {path}: "
-            f"{error.reason}"
+            f"Network error during "
+            f"{method} {path}: {error.reason}"
         )
         raise
 
 
-def update_status(base, token, prefix, value):
-    """Report render status to the Worker."""
+# ----------------------------------------
+# STATUS MANAGEMENT
+# ----------------------------------------
 
+def update_status(
+    base,
+    token,
+    prefix,
+    value
+):
     payload = json.dumps({
         "status": value
     }).encode("utf-8")
@@ -128,33 +152,50 @@ def update_status(base, token, prefix, value):
     log(f"Status: {value}")
 
 
-def validate_manifest(manifest):
-    """Validate the remote render configuration."""
+# ----------------------------------------
+# MANIFEST VALIDATION
+# ----------------------------------------
 
+def validate_manifest(manifest):
     fps = int(manifest["fps"])
     count = int(manifest["frameCount"])
     width = int(manifest["width"])
     height = int(manifest["height"])
 
     if not 1 <= fps <= 60:
-        raise ValueError("Invalid FPS")
+        raise ValueError(
+            "Invalid FPS"
+        )
 
     if not 1 <= count <= MAX_FRAMES:
-        raise ValueError("Invalid frame count")
+        raise ValueError(
+            "Invalid frame count"
+        )
 
     if not (
         16 <= width <= 1920
         and 16 <= height <= 1920
     ):
-        raise ValueError("Invalid dimensions")
+        raise ValueError(
+            "Invalid video dimensions"
+        )
 
     if width % 2 or height % 2:
         raise ValueError(
             "Video dimensions must be even"
         )
 
-    return fps, count, width, height
+    return (
+        fps,
+        count,
+        width,
+        height
+    )
 
+
+# ----------------------------------------
+# FRAME DOWNLOAD
+# ----------------------------------------
 
 def download_frames(
     base,
@@ -163,35 +204,40 @@ def download_frames(
     count,
     directory
 ):
-    """Download all PNG frames from Cloudflare R2."""
+    log(
+        f"Downloading {count} PNG frames"
+    )
 
-    log(f"Downloading {count} frames")
-
-    png_signature = b"\x89PNG\r\n\x1a\n"
+    png_signature = (
+        b"\x89PNG\r\n\x1a\n"
+    )
 
     for index in range(count):
-        path = f"{prefix}/frames/{index}"
-
         data = request(
             base,
             token,
             "GET",
-            path
+            f"{prefix}/frames/{index}"
         )
 
         if not (
             24 <= len(data) <= MAX_PNG_SIZE
         ):
             raise ValueError(
-                f"Invalid PNG size at frame {index}"
+                f"Invalid PNG size: {index}"
             )
 
-        if not data.startswith(png_signature):
+        if not data.startswith(
+            png_signature
+        ):
             raise ValueError(
-                f"Invalid PNG signature at frame {index}"
+                f"Invalid PNG signature: {index}"
             )
 
-        output = directory / f"frame_{index:06d}.png"
+        output = directory / (
+            f"frame_{index:06d}.png"
+        )
+
         output.write_bytes(data)
 
         if (
@@ -199,9 +245,14 @@ def download_frames(
             or index + 1 == count
         ):
             log(
-                f"Downloaded {index + 1}/{count}"
+                f"Downloaded "
+                f"{index + 1}/{count}"
             )
 
+
+# ----------------------------------------
+# FFMPEG ENCODING
+# ----------------------------------------
 
 def encode_video(
     directory,
@@ -210,9 +261,9 @@ def encode_video(
     width,
     height
 ):
-    """Encode PNG frames into an H.264 MP4 using FFmpeg."""
-
-    output = directory / "LAB-render.mp4"
+    output = (
+        directory / "LAB-render.mp4"
+    )
 
     command = [
         "ffmpeg",
@@ -224,11 +275,16 @@ def encode_video(
         "-start_number",
         "0",
         "-i",
-        str(directory / "frame_%06d.png"),
+        str(
+            directory / "frame_%06d.png"
+        ),
         "-frames:v",
         str(count),
         "-vf",
-        f"scale={width}:{height}:flags=lanczos",
+        (
+            f"scale={width}:{height}"
+            ":flags=lanczos"
+        ),
         "-c:v",
         "libx264",
         "-preset",
@@ -242,7 +298,9 @@ def encode_video(
         str(output)
     ]
 
-    log("Starting FFmpeg H.264 encoding")
+    log(
+        "Starting FFmpeg H.264 encoding"
+    )
 
     subprocess.run(
         command,
@@ -252,22 +310,28 @@ def encode_video(
 
     if not output.exists():
         raise RuntimeError(
-            "FFmpeg did not generate an MP4"
+            "FFmpeg did not generate MP4"
         )
 
     size = output.stat().st_size
 
-    if not 12 <= size <= MAX_MP4_SIZE:
+    if not (
+        12 <= size <= MAX_MP4_SIZE
+    ):
         raise ValueError(
-            f"Invalid MP4 output size: {size}"
+            f"Invalid MP4 size: {size}"
         )
 
     log(
-        f"MP4 generated successfully: {size} bytes"
+        f"MP4 generated: {size} bytes"
     )
 
     return output
 
+
+# ----------------------------------------
+# UPLOAD MP4
+# ----------------------------------------
 
 def upload_video(
     base,
@@ -275,16 +339,16 @@ def upload_video(
     prefix,
     output
 ):
-    """Upload the rendered MP4 to Cloudflare R2."""
-
     data = output.read_bytes()
 
     if data[4:8] != b"ftyp":
         raise ValueError(
-            "Invalid MP4 file signature"
+            "Invalid MP4 signature"
         )
 
-    log("Uploading MP4 to Cloudflare")
+    log(
+        "Uploading MP4 to Cloudflare R2"
+    )
 
     result = request(
         base,
@@ -295,14 +359,18 @@ def upload_video(
         "video/mp4"
     )
 
-    log("MP4 uploaded successfully")
+    log(
+        "MP4 uploaded successfully"
+    )
 
     return result
 
 
-def run():
-    """Execute the remote rendering pipeline."""
+# ----------------------------------------
+# MAIN RENDER PIPELINE
+# ----------------------------------------
 
+def run():
     base = os.environ[
         "LAB_RENDER_API_URL"
     ].rstrip("/")
@@ -315,25 +383,43 @@ def run():
         "LAB_JOB_ID"
     ]
 
-    if not base.startswith("https://"):
+    if not base.startswith(
+        "https://"
+    ):
         raise ValueError(
-            "LAB_RENDER_API_URL must use HTTPS"
+            "LAB_RENDER_API_URL "
+            "must use HTTPS"
         )
 
-    if not JOB_RE.fullmatch(job_id):
+    if not JOB_RE.fullmatch(
+        job_id
+    ):
         raise ValueError(
             "Invalid LAB_JOB_ID"
         )
 
-    prefix = f"/internal/jobs/{job_id}"
+    prefix = (
+        f"/internal/jobs/{job_id}"
+    )
 
-    log("LAB Remote Render Runner")
-    log(f"Job ID: {job_id}")
-    log(f"API: {base}")
+    log(
+        "LAB Remote Render Runner v2.3"
+    )
+
+    log(
+        f"Job ID: {job_id}"
+    )
+
+    log(
+        f"API: {base}"
+    )
 
     try:
-        # 1. Retrieve manifest
-        log("Retrieving render manifest")
+        # STEP 1: GET MANIFEST
+
+        log(
+            "Retrieving render manifest"
+        )
 
         raw = request(
             base,
@@ -342,18 +428,28 @@ def run():
             prefix
         )
 
-        manifest = json.loads(raw)
+        manifest = json.loads(
+            raw
+        )
 
-        fps, count, width, height = (
-            validate_manifest(manifest)
+        (
+            fps,
+            count,
+            width,
+            height
+        ) = validate_manifest(
+            manifest
         )
 
         log(
-            f"Configuration: {width}x{height}, "
-            f"{fps} FPS, {count} frames"
+            f"Configuration: "
+            f"{width}x{height}, "
+            f"{fps} FPS, "
+            f"{count} frames"
         )
 
-        # 2. Update job status
+        # STEP 2: START RENDERING
+
         update_status(
             base,
             token,
@@ -361,12 +457,15 @@ def run():
             "rendering"
         )
 
-        # 3. Download frames
+        # STEP 3: DOWNLOAD FRAMES
+
         with tempfile.TemporaryDirectory(
             prefix="lab-render-"
         ) as temp:
 
-            directory = Path(temp)
+            directory = Path(
+                temp
+            )
 
             download_frames(
                 base,
@@ -376,7 +475,8 @@ def run():
                 directory
             )
 
-            # 4. Encode MP4
+            # STEP 4: ENCODE MP4
+
             output = encode_video(
                 directory,
                 fps,
@@ -385,7 +485,8 @@ def run():
                 height
             )
 
-            # 5. Upload MP4
+            # STEP 5: UPLOAD MP4
+
             upload_video(
                 base,
                 token,
@@ -394,11 +495,14 @@ def run():
             )
 
         log(
-            f"Remote render completed: {job_id}"
+            "Remote render completed: "
+            f"{job_id}"
         )
 
     except Exception:
-        log("Render failed")
+        log(
+            "Render failed"
+        )
 
         try:
             update_status(
@@ -410,7 +514,8 @@ def run():
 
         except Exception as status_error:
             log(
-                "Could not report failed status: "
+                "Could not report "
+                "failed status: "
                 f"{status_error}"
             )
 
