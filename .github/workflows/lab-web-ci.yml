@@ -1,0 +1,34 @@
+name: LAB Web CI
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'react-app/**'
+      - '.github/workflows/lab-web-ci.yml'
+  pull_request:
+    paths:
+      - 'react-app/**'
+      - '.github/workflows/lab-web-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: react-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: react-app/package-lock.json
+      - name: Install exact dependencies
+        run: npm ci
+      - name: Typecheck and production build
+        run: npm run build
+      - name: Unit tests
+        run: npm test
