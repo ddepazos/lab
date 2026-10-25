@@ -1,4 +1,4 @@
-name: LAB Desktop Windows build
+name: LAB Desktop Windows installer
 
 on:
   push:
@@ -19,7 +19,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: react-app
