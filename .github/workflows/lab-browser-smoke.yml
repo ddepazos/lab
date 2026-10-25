@@ -60,6 +60,8 @@ jobs:
           console.log('LAB smoke check passed');
           await browser.close();
           JS
+      - name: Functional Playwright checks
+        run: node scripts/browser-functional.mjs
       - name: Upload screenshot and server log
         if: always()
         uses: actions/upload-artifact@v4
@@ -67,5 +69,6 @@ jobs:
           name: lab-browser-smoke
           path: |
             react-app/lab-smoke.png
+            react-app/test-results/
             /tmp/lab-preview.log
           if-no-files-found: ignore
