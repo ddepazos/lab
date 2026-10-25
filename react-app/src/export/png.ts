@@ -1,5 +1,5 @@
 /** Rasterize the SVG at its document aspect ratio, independent of CSS preview size. */
-export async function downloadPNG(svg:string,filename='LAB-composicion.png',size=1600):Promise<void>{
+export async function downloadPNG(svg:string,filename='LAB-composicion.png',size=1600,board?:HTMLElement|null):Promise<void>{
  const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});
  const url=URL.createObjectURL(blob);
  try{
@@ -11,7 +11,7 @@ export async function downloadPNG(svg:string,filename='LAB-composicion.png',size
   });
   const doc=new DOMParser().parseFromString(svg,'image/svg+xml');
   const root=doc.documentElement;
-  const viewBox=root.getAttribute('viewBox')?.trim().split(/[\\s,]+/).map(Number);
+  const viewBox=root.getAttribute('viewBox')?.trim().split(/[\s,]+/).map(Number);
   const widthAttr=Number.parseFloat(root.getAttribute('width')??'');
   const heightAttr=Number.parseFloat(root.getAttribute('height')??'');
   const sourceWidth=viewBox?.length===4&&viewBox[2]>0?viewBox[2]:widthAttr>0?widthAttr:img.naturalWidth;
@@ -25,6 +25,25 @@ export async function downloadPNG(svg:string,filename='LAB-composicion.png',size
   const ctx=canvas.getContext('2d');
   if(!ctx)throw new Error('Canvas no disponible');
   ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  // Composite browser-rendered WebGL and interactive canvas layers over the SVG.
+  // Preview pixels map to export pixels; CSS zoom never changes document resolution.
+  if(board){
+   const bounds=board.getBoundingClientRect();
+   if(bounds.width>0&&bounds.height>0){
+    const surfaces=[
+     ...board.querySelectorAll<HTMLCanvasElement>('.overlay-3d canvas'),
+     ...board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay canvas'),
+     ...board.querySelectorAll<HTMLCanvasElement>('.konva-overlay canvas')
+    ];
+    for(const surface of surfaces){
+     const rect=surface.getBoundingClientRect();
+     if(!surface.width||!surface.height||!rect.width||!rect.height)continue;
+     ctx.drawImage(surface,(rect.left-bounds.left)/bounds.width*canvas.width,
+      (rect.top-bounds.top)/bounds.height*canvas.height,
+      rect.width/bounds.width*canvas.width,rect.height/bounds.height*canvas.height);
+    }
+   }
+  }
   const png=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Error al exportar PNG')),'image/png'));
   const pngUrl=URL.createObjectURL(png);
   try{
