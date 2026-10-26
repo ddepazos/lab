@@ -2,6 +2,7 @@ import type {StudioDocument} from '../document/types';
 import type {Layer} from '../document/layers';
 import {generateSVG} from './grid';
 import {generateWavesSVG} from './waves';
+import {generateLegacySVG} from './legacy';
 const escapeXml=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]!));
 function svgTextContent(layer:Layer,fallback:StudioDocument):string{
  const x=layer.x??400,y=layer.y??400,size=layer.fontSize??100;
@@ -30,7 +31,7 @@ export function composeSVG(background:string,layers:Layer[],fallback:StudioDocum
  const width=Math.max(100,Math.min(8192,fallback.canvasWidth??800));const height=Math.max(100,Math.min(8192,fallback.canvasHeight??800));const factor=Math.min(width,height)/800;const offsetX=(width-800*factor)/2,offsetY=(height-800*factor)/2;
  const parts=layers.filter(l=>l.visible).map(l=>{
   let content='';
-  if(l.type==='pattern'){const settings={...fallback,...l.pattern,gestalt:fallback.gestalt??l.pattern?.gestalt,expand:fallback.expand??l.pattern?.expand,canvasWidth:width,canvasHeight:height,background:'transparent'};const svg=settings.generator==='waves'?generateWavesSVG(settings):generateSVG(settings);content=svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'').replace(/<rect width="[^"]+" height="[^"]+" fill="transparent"\/>/,'');}
+  if(l.type==='pattern'){const settings={...fallback,...l.pattern,gestalt:fallback.gestalt??l.pattern?.gestalt,expand:fallback.expand??l.pattern?.expand,canvasWidth:width,canvasHeight:height,background:'transparent'};const svg=settings.generator==='waves'?generateWavesSVG(settings):settings.generator&&settings.generator!=='grid'?generateLegacySVG(settings):generateSVG(settings);content=svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'').replace(/<rect width="[^"]+" height="[^"]+" fill="transparent"\/>/,'');}
   if(l.type==='text')content=svgTextContent(l,fallback);
   if(l.type==='image'&&l.imageSrc&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(l.imageSrc))content=`<image href="${l.imageSrc}" x="${l.x??0}" y="${l.y??0}" width="${l.imageWidth??200}" height="${l.imageHeight??200}" preserveAspectRatio="xMidYMid meet"/>`;
   const rotation=l.rotation??0;
