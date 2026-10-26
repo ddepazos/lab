@@ -2,11 +2,12 @@
 
 Editor creativo experimental de composición generativa **2D y 3D**, con sistemas modulares, retículas y principios de percepción visual Gestalt.
 
-**Sitio público:** https://ddepazos.github.io/lab/  
+**Aplicación principal (React):** https://lab-studio-asl.pages.dev/  
+**Sitio histórico (HTML):** https://ddepazos.github.io/lab/  
 **Diseño UX/UI en Figma:** https://www.figma.com/design/0ZvF62mYgJYJBfwriEkzMD  
 **Repositorio:** https://github.com/ddepazos/lab
 
-> **Estado:** prototipo en evolución. La interfaz pública actual usa `index.html` con CSS/JavaScript y Three.js. Las pantallas de Figma son una propuesta editable de diseño, no funciones ya implementadas. La arquitectura descrita aquí es un objetivo de migración, no el estado actual del código.
+> **Estado actualizado (octubre 2026):** la aplicación principal está en `react-app/` (React + TypeScript + Vite) y se publica en https://lab-studio-asl.pages.dev/ desde `main`. El `index.html` de la raíz sigue sirviendo a la URL histórica de GitHub Pages y contiene capacidades heredadas que requieren contraste antes de retirarlo. Las pantallas de Figma son referencias de diseño.
 
 ## Objetivo
 
