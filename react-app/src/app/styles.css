@@ -207,3 +207,6 @@
  .shell .artboard{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.shell button{transition:none}}
+
+/* Imported images are rendered by Konva for direct manipulation in editing mode. The SVG remains the source for exports. */
+.artboard:has(.konva-text-overlay.editing-images) .artboard-base svg image{opacity:0}
