@@ -31,18 +31,16 @@ export function generateWavesSVG(doc:StudioDocument):string{
    const bend=Math.sin(t*Math.PI*2+row*0.13)*distortion*amplitude*0.6;
    const wave=Math.sin(t*frequency*Math.PI*2+phase+row*0.09);
    const drift=Math.sin(t*frequency*Math.PI*5+row*0.19+doc.seed*0.01)*noise;
-   const proximity=gestalt==='proximity'?Math.sin(Math.floor(row/4)*2.1)*h/count*.65:0;
+   const proximity=gestalt==='proximity'?Math.sin(Math.floor(row/4)*2.1)*h/count*.18:0;
    const focal=gestalt==='focalPoint'?Math.max(.12,1-Math.abs(t-.5)*1.8):1;
    const symmetry=gestalt==='symmetry'?Math.abs(t-.5)*2:t;
    const variation=gestalt==='commonFate'?Math.sin(t*Math.PI*2+row*.08):wave;
    const continuity=gestalt==='continuity'?Math.sin(t*frequency*Math.PI*2):variation;
-   const y=baseline+proximity+(continuity+drift)*(amplitude*expansion)*envelope*focal+bend+(gestalt==='parallelism'?symmetry*amplitude*.35:0);
+   const y=baseline+proximity+(continuity+drift)*(amplitude*expansion)*envelope*focal+bend+(gestalt==='parallelism'?symmetry*amplitude*.12:0);
    points.push((x===0?'M':'L')+x+' '+y.toFixed(2));
    rowValues.push(y);
   }
   meshPoints.push(rowValues);
-  if(gestalt==='closure'&&row%4===0)paths.push('<ellipse cx="'+centerX+'" cy="'+baseline+'" rx="'+w*.32+'" ry="'+Math.max(4,amplitude*expansion)+'" fill="none" stroke="'+doc.foreground+'" stroke-width="'+strokeWidth+'" stroke-dasharray="18 8" opacity=".55"/>');
-  if(gestalt==='connectedness'&&row%3===0)paths.push('<path d="M0 '+baseline+' H'+w+'" stroke="'+doc.foreground+'" stroke-width="'+Math.max(1,strokeWidth*.5)+'" opacity=".3"/>');
   if(style==='ribbons')paths.push('<path d="'+points.join(' ')+' L'+w+' '+(baseline+amplitude*.45).toFixed(2)+' L0 '+(baseline+amplitude*.45).toFixed(2)+' Z" fill="'+doc.foreground+'" opacity="0.7"/>');
   if(style==='contours'&&row%3===0)paths.push('<path d="'+points.join(' ')+'" fill="none" stroke="'+doc.foreground+'" stroke-width="'+(strokeWidth*2).toFixed(2)+'"/>');
   if(style==='lines')paths.push('<path d="'+points.join(' ')+'" fill="none" stroke="'+doc.foreground+'" stroke-width="'+strokeWidth+'"/>');
@@ -58,7 +56,5 @@ export function generateWavesSVG(doc:StudioDocument):string{
    paths.push('<path d="'+meshPoints.map((values,i)=>(i?'L':'M')+x.toFixed(2)+' '+values[idx].toFixed(2)).join(' ')+'" fill="none" stroke="'+doc.foreground+'" stroke-width="'+strokeWidth+'"/>');
   }
  }
- if(gestalt==='figureGround')paths.unshift('<rect x="'+w*.25+'" y="'+h*.25+'" width="'+w*.5+'" height="'+h*.5+'" rx="'+Math.min(w,h)*.1+'" fill="'+doc.foreground+'" opacity=".14"/>');
- if(gestalt==='commonRegion')for(let row=0;row<count;row+=6)paths.unshift('<rect x="0" y="'+row*h/count+'" width="'+w+'" height="'+6*h/count+'" fill="none" stroke="'+doc.foreground+'" stroke-opacity=".3"/>');
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'"><rect width="'+w+'" height="'+h+'" fill="'+doc.background+'"/>'+paths.join('')+'</svg>';
 }
