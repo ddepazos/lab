@@ -105,3 +105,30 @@
  .shell .drawing-controls button,.shell .view-switch button{padding:7px 8px}
  .shell .video-export{padding:8px}
 }
+
+
+/* Compact pencil controls — presentation only; drawing handlers remain in App.tsx. */
+.shell .drawing-controls{
+ display:flex;align-items:center;flex-wrap:wrap;gap:5px;
+ padding:5px 7px;min-height:38px;
+}
+.shell .drawing-controls button{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:28px;padding:4px 7px;font-size:11px;line-height:1.2;
+ white-space:nowrap;
+}
+.shell .drawing-controls label{
+ display:inline-flex;align-items:center;gap:5px;
+ margin:0;padding:0;font-size:11px;white-space:nowrap;
+}
+.shell .drawing-controls input[type="color"]{
+ width:28px;height:25px;min-width:28px;padding:1px;cursor:pointer;
+}
+.shell .drawing-controls input[type="range"]{
+ width:88px;min-width:65px;max-width:110px;margin:0;
+}
+@media(max-width:650px){
+ .shell .drawing-controls{gap:4px;padding:4px}
+ .shell .drawing-controls button{padding:4px 6px;min-height:27px}
+ .shell .drawing-controls input[type="range"]{width:72px}
+}
