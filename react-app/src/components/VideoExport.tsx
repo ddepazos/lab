@@ -85,8 +85,8 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
     if(markup!==previousSvg){previousImage=await imageFromSvg(svg,exportWidth,exportHeight);previousSvg=markup}
     ctx.fillStyle='#171717';ctx.fillRect(0,0,exportWidth,exportHeight);
     if(previousImage)ctx.drawImage(previousImage,0,0,exportWidth,exportHeight);
-    await drawImportedImages(ctx,svg,exportWidth,exportHeight);
     else throw new Error('No se pudo componer el fondo SVG');
+    await drawImportedImages(ctx,svg,exportWidth,exportHeight);
     window.dispatchEvent(new CustomEvent('lab:render-3d-frame',{detail:{time:t}}));
     const gl=board.querySelector<HTMLCanvasElement>('.overlay-3d canvas');
     if(gl)drawCanvas(ctx,gl,board,exportWidth,exportHeight);
