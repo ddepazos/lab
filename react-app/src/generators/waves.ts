@@ -19,7 +19,7 @@ export function generateWavesSVG(doc:StudioDocument):string{
  const step=w/100;
  const gestalt=doc.gestalt??'none';
  const expansion=clamp((doc.expand??100)/100,.4,6);
- const centerX=w/2,centerY=h/2;
+ const centerX=w/2;
  for(let row=0;row<count;row++){
   const baseline=(row+0.5)*h/count;
   const phase=(gestalt==='similarity'||gestalt==='praegnanz'?0:randomAt(doc.seed,gestalt==='symmetry'?Math.min(row,count-1-row)*13:row*13)*Math.PI*2);
