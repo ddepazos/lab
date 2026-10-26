@@ -35,8 +35,8 @@ export function composeSVG(background:string,layers:Layer[],fallback:StudioDocum
   if(l.type==='image'&&l.imageSrc&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(l.imageSrc))content=`<image href="${l.imageSrc}" x="${l.x??0}" y="${l.y??0}" width="${l.imageWidth??200}" height="${l.imageHeight??200}" preserveAspectRatio="xMidYMid meet"/>`;
   const rotation=l.rotation??0;
   const scale=Math.max(.01,l.scale??1);
-  const transform=l.type==='pattern'?` transform="translate(${l.x??0} ${l.y??0}) translate(${width/2} ${height/2}) rotate(${rotation}) scale(${scale}) translate(-${width/2} -${height/2})"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
-  return `<g${l.type==='pattern'?'':`transform="translate(${offsetX} ${offsetY}) scale(${factor})"`}><g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g></g>`;
+  const transform=l.type==='image'?` transform="translate(${l.x??0} ${l.y??0}) scale(${scale}) translate(-${l.x??0} -${l.y??0})"`:l.type==='pattern'?` transform="translate(${l.x??0} ${l.y??0}) translate(${width/2} ${height/2}) rotate(${rotation}) scale(${scale}) translate(-${width/2} -${height/2})"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
+  return `<g${l.type==='pattern'||l.type==='image'?'':`transform="translate(${offsetX} ${offsetY}) scale(${factor})"`}><g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g></g>`;
  });
  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${background}"/>${parts.join('')}</svg>`;
 }
