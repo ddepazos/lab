@@ -210,3 +210,22 @@
 
 /* Imported images are rendered by Konva for direct manipulation in editing mode. The SVG remains the source for exports. */
 .artboard:has(.konva-text-overlay.editing-images) .artboard-base svg image{opacity:0}
+
+
+/* Floating compact properties at narrow desktop widths: artboard stays visible
+   while editing sliders. Existing property toggle remains the close control. */
+@media (min-width:651px) and (max-width:1100px){
+ .shell .properties{
+  position:fixed;z-index:45;top:128px;right:12px;
+  width:min(300px,calc(100vw - 72px));max-height:calc(100dvh - 144px);
+  overflow-y:auto;overscroll-behavior:contain;
+  border:1px solid var(--lab-line);border-radius:10px;
+  box-shadow:0 16px 50px #000b;
+ }
+ .shell .properties label{font-size:10px;margin:6px 0}
+ .shell .properties input[type=range]{height:14px;margin-top:3px}
+ .shell .properties select,.shell .properties input[type=number]{padding:5px;font-size:11px}
+ .shell .properties h2{font-size:12px;margin:6px 0}
+ .shell .properties button{padding:5px 7px;font-size:11px}
+ .shell .workspace{min-height:calc(100dvh - 160px)}
+}
