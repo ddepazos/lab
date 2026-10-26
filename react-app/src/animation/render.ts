@@ -14,6 +14,9 @@ export function animatedLayers(layers:Layer[],timeline:Timeline,time:number):Lay
    if(track.property==='scale')next.scale=Math.max(0.01,Math.min(4,value));
    if(track.property==='mix'&&next.pattern)next.pattern.mix=Math.max(0,Math.min(100,value));
    if(track.property==='gridRotation'&&next.pattern)next.pattern.rotation=value;
+   if(track.property==='cellRotation'&&next.pattern)next.pattern.cellRotation=value;
+   if(track.property==='cellScale'&&next.pattern)next.pattern.cellScale=Math.max(0.1,Math.min(2,value));
+   if(track.property==='cellWave'&&next.pattern)next.pattern.cellWave=value;
   }
   return next;
  });
