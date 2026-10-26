@@ -29,14 +29,22 @@ function svgTextContent(layer:Layer,fallback:StudioDocument):string{
 }
 export function composeSVG(background:string,layers:Layer[],fallback:StudioDocument):string {
  const width=Math.max(100,Math.min(8192,fallback.canvasWidth??800));const height=Math.max(100,Math.min(8192,fallback.canvasHeight??800));const factor=Math.min(width,height)/800;const offsetX=(width-800*factor)/2,offsetY=(height-800*factor)/2;
- const parts=layers.filter(l=>l.visible).map(l=>{
+ const parts=layers.filter(l=>l.visible).map((l,index)=>{
   let content='';
   if(l.type==='pattern'){const settings={...fallback,...l.pattern,gestalt:l.pattern?.gestalt??fallback.gestalt,expand:l.pattern?.expand??fallback.expand,canvasWidth:width,canvasHeight:height,background:'transparent'};const svg=settings.generator==='waves'?generateWavesSVG(settings):settings.generator&&settings.generator!=='grid'?generateLegacySVG(settings):generateSVG(settings);content=svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'').replace(/<rect width="[^"]+" height="[^"]+" fill="transparent"\/>/,'');}
   if(l.type==='text')content=svgTextContent(l,fallback);
   if(l.type==='image'&&l.imageSrc&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(l.imageSrc))content=`<image href="${l.imageSrc}" x="${l.x??0}" y="${l.y??0}" width="${l.imageWidth??200}" height="${l.imageHeight??200}" preserveAspectRatio="xMidYMid meet"/>`;
+  // Tile moving generative layers; keep static layers and all other tools unchanged.
+  const repeatMotion=l.type==='pattern'&&((l.x??0)!==0||(l.y??0)!==0);
+  if(repeatMotion){
+   const id=`lab-repeat-${index}`;
+   const dx=((l.x??0)%width+width)%width;
+   const dy=((l.y??0)%height+height)%height;
+   content=`<defs><pattern id="${id}" patternUnits="userSpaceOnUse" width="${width}" height="${height}" patternTransform="translate(${dx} ${dy})">${content}</pattern></defs><rect width="${width}" height="${height}" fill="url(#${id})"/>`;
+  }
   const rotation=l.rotation??0;
   const scale=Math.max(.01,l.scale??1);
-  const transform=l.type==='image'?` transform="translate(${l.x??0} ${l.y??0}) scale(${scale}) translate(-${l.x??0} -${l.y??0})"`:l.type==='pattern'?` transform="translate(${l.x??0} ${l.y??0}) translate(${width/2} ${height/2}) rotate(${rotation}) scale(${scale}) translate(-${width/2} -${height/2})"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
+  const transform=l.type==='image'?` transform="translate(${l.x??0} ${l.y??0}) scale(${scale}) translate(-${l.x??0} -${l.y??0})"`:l.type==='pattern'?` transform="${repeatMotion?'':`translate(${l.x??0} ${l.y??0}) `}translate(${width/2} ${height/2}) rotate(${rotation}) scale(${scale}) translate(-${width/2} -${height/2})"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
   return `<g${l.type==='pattern'||l.type==='image'?'':`transform="translate(${offsetX} ${offsetY}) scale(${factor})"`}><g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g></g>`;
  });
  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${background}"/>${parts.join('')}</svg>`;
