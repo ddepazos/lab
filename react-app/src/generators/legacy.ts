@@ -64,10 +64,5 @@ export function generateLegacySVG(d:StudioDocument):string {
    parts.push('<path d="'+path+'" fill="none" stroke="'+ink+'" stroke-width="'+clamp(d.waveStrokeWidth??2,.5,12)+'"/>');
   }
  }
- if(g==='connectedness')for(let i=1;i<6;i++)parts.push('<path d="M'+(i*w/6)+' 0 V'+h+'" stroke="'+ink+'" stroke-width="1" opacity=".3"/>');
- if(g==='commonRegion')for(let i=0;i<4;i++)parts.unshift('<rect x="'+(i*w/4)+'" y="0" width="'+(w/4)+'" height="'+h+'" fill="none" stroke="'+ink+'" stroke-opacity=".35"/>');
- if(g==='figureGround')parts.unshift('<circle cx="'+cx+'" cy="'+cy+'" r="'+Math.min(w,h)*.25+'" fill="'+ink+'" fill-opacity=".13"/>');
- if(g==='closure')parts.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+Math.min(w,h)*.33+'" fill="none" stroke="'+ink+'" stroke-width="3" stroke-dasharray="30 12"/>');
- if(g==='continuity')parts.push('<path d="M0 '+cy+' H'+w+'" fill="none" stroke="'+ink+'" stroke-width="2" opacity=".5"/>');
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'"><rect width="'+w+'" height="'+h+'" fill="'+d.background+'"/>'+parts.join('')+'</svg>';
 }
