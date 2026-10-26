@@ -1,6 +1,6 @@
 export type Easing='linear'|'easeInOut'|'easeIn'|'easeOut'|'step'|'elastic';
 export type Keyframe={time:number;value:number;easing?:Easing};
-export type Track={layerId:string;property:'rotation'|'opacity'|'x'|'y'|'scale'|'mix'|'gridRotation'|'cellRotation'|'cellScale'|'cellWave';keyframes:Keyframe[]};
+export type Track={layerId:string;property:'rotation'|'opacity'|'x'|'y'|'scale'|'mix'|'gridRotation'|'cellRotation'|'cellScale'|'cellWave'|'waveAmplitude'|'waveFrequency'|'waveNoise'|'waveStrokeWidth'|'waveDotSize'|'waveDecay'|'waveDistortion'|'waveLines'|'waveMeshColumns'|'columns'|'rows'|'density'|'expand';keyframes:Keyframe[]};
 export type Timeline={duration:number;fps:number;loop:boolean;tracks:Track[]};
 export const defaultTimeline:Timeline={duration:5,fps:30,loop:true,tracks:[]};
 export function sampleTrack(track:Track,time:number):number|undefined{
