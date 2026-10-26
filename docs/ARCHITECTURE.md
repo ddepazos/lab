@@ -203,3 +203,27 @@ type ModuleMix = {
 ```
 
 **Implementación:** construir un registro declarativo de módulos y miniaturas desde una sola definición geométrica; el generador y el exportador deben reutilizar esa geometría para evitar divergencias entre vista previa y SVG. La galería y sus controles se diseñarán primero en Figma.
+
+
+## Bitácora — 26 de octubre de 2026
+
+### Alcance y evidencia
+- Aplicación canónica: `react-app/` (React, TypeScript, Vite); publicación indicada en README: `https://lab-studio-asl.pages.dev/`. El HTML raíz permanece como sitio histórico.
+- Commit inspeccionado en `main`: `683bf5d9f265419d427b88edd06923b855e52a24`, mensaje `fix(gestalt): prevent unrelated decorative shapes in legacy generators`.
+- Diferencia verificada en `react-app/src/generators/legacy.ts`: eliminación de cinco añadidos decorativos SVG asociados a `connectedness`, `commonRegion`, `figureGround`, `closure` y `continuity`. Esta eliminación no demuestra por sí sola una implementación paramétrica sustitutiva.
+- En captura de GitHub Actions se observan dos ejecuciones fallidas del commit: **LAB React UI checks #102** (aprox. 14 s) y **LAB Web CI #67** (aprox. 18 s). La página del repositorio muestra indicador de fallo en el commit.
+- Consultas del conector GitHub a estados combinados y ejecuciones de workflow asociadas al commit devolvieron listas vacías; esa consulta no contradice las ejecuciones visibles, ya que la consulta de ejecuciones está limitada a runs activados por pull request.
+- `react-app/package.json` confirma el script `build: tsc --noEmit && vite build` y `test: vitest run`.
+
+### Pendientes y criterios de no regresión
+1. Obtener logs de los jobs fallidos, identificar causa exacta, corregir y volver a ejecutar compilación y pruebas; **no declarar build exitoso hasta verificarlo**.
+2. Contrastar controles 2D y generadores personalizados con la implementación React actual; evitar duplicar funcionalidades heredadas.
+3. Verificar que los principios Gestalt actúen sobre geometría/composición existente y no agreguen decoración no relacionada.
+4. Evaluar edición individual de objetos 3D, propiedades por elemento y línea de tiempo con keyframes, reproducción y exportación. Son requerimientos de producto; no se marcan como completados.
+5. Validar formatos de exportación, especialmente MP4/4K, con archivos reales y sin inferir compatibilidad a partir de la UI.
+6. Conservar el lápiz y los lienzos 2D/3D que el usuario declaró funcionales; no alterar los motores locales/remotos, FFmpeg, Tauri ni la publicación sin pruebas específicas.
+7. Trabajar sobre `main` sin ramas nuevas, sin borrar trabajo exclusivo y evitando cambios redundantes.
+
+### Estado de cierre de la revisión
+- Documentación actualizada; **sin corrección de código, nueva compilación ni despliegue confirmados durante esta revisión**.
+- Las decisiones y requisitos históricos se conservan en las secciones anteriores. No confundir propuesta, implementación y validación.
