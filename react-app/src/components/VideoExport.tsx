@@ -11,6 +11,9 @@ function drawCanvas(ctx:CanvasRenderingContext2D,canvas:HTMLCanvasElement,board:
 function imageFromSvg(svg:SVGSVGElement,width:number,height:number):Promise<HTMLImageElement>{
  const clone=svg.cloneNode(true) as SVGSVGElement;
  clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+ // Imported PNG/JPG/WebP images are composited from the original SVG separately below.
+ // Embedded data URLs in SVG image elements can make Chromium reject the entire SVG as an image.
+ clone.querySelectorAll('image,foreignObject').forEach(node=>node.remove());
  clone.setAttribute('width',String(width));clone.setAttribute('height',String(height));
  const blob=new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml;charset=utf-8'});
  const url=URL.createObjectURL(blob);
@@ -20,6 +23,20 @@ function imageFromSvg(svg:SVGSVGElement,width:number,height:number):Promise<HTML
   img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('No se pudo procesar el fondo SVG de la animación'))};
   img.src=url;
  });
+}
+async function drawImportedImages(ctx:CanvasRenderingContext2D,svg:SVGSVGElement,width:number,height:number){
+ const view=svg.viewBox.baseVal;const sx=width/(view.width||width),sy=height/(view.height||height);
+ const nodes=Array.from(svg.querySelectorAll<SVGImageElement>('image'));
+ for(const node of nodes){
+  const href=node.getAttribute('href')||node.getAttribute('xlink:href');if(!href||!href.startsWith('data:image/'))continue;
+  const img=new Image();img.src=href;
+  try{await img.decode()}catch{continue}
+  const x=node.x.baseVal.value,y=node.y.baseVal.value,w=node.width.baseVal.value,h=node.height.baseVal.value;
+  const transform=node.getCTM();
+  ctx.save();ctx.scale(sx,sy);
+  if(transform)ctx.transform(transform.a,transform.b,transform.c,transform.d,transform.e,transform.f);
+  ctx.drawImage(img,x,y,w,h);ctx.restore();
+ }
 }
 function download(blob:Blob,ext:'mp4'|'webm'){
  const url=URL.createObjectURL(blob);
@@ -68,6 +85,7 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
     if(markup!==previousSvg){previousImage=await imageFromSvg(svg,exportWidth,exportHeight);previousSvg=markup}
     ctx.fillStyle='#171717';ctx.fillRect(0,0,exportWidth,exportHeight);
     if(previousImage)ctx.drawImage(previousImage,0,0,exportWidth,exportHeight);
+    await drawImportedImages(ctx,svg,exportWidth,exportHeight);
     else throw new Error('No se pudo componer el fondo SVG');
     window.dispatchEvent(new CustomEvent('lab:render-3d-frame',{detail:{time:t}}));
     const gl=board.querySelector<HTMLCanvasElement>('.overlay-3d canvas');
