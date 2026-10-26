@@ -132,3 +132,78 @@
  .shell .drawing-controls button{padding:4px 6px;min-height:27px}
  .shell .drawing-controls input[type="range"]{width:72px}
 }
+
+
+/* LAB Workspace v2 — consolidated dark UI; no canvas or export engine changes. */
+:root{color-scheme:dark;--lab-accent:#ff6900;--lab-bg:#171719;--lab-panel:#202023;--lab-line:#38383d;--lab-muted:#aaaab2}
+.shell{background:var(--lab-bg);color:#f0f0f2}
+.shell button,.shell select,.shell input,.shell textarea{font-family:inherit}
+.shell button{transition:background-color .14s ease,border-color .14s ease;line-height:1.2}
+.shell button:focus-visible,.shell input:focus-visible,.shell select:focus-visible,.shell summary:focus-visible{outline:2px solid var(--lab-accent);outline-offset:2px}
+.shell button:disabled{opacity:.45;cursor:not-allowed}
+.shell .lab-menubar{background:#1b1b1e;border-color:var(--lab-line)}
+.shell>header{background:#202023;border-bottom:1px solid var(--lab-line)}
+.shell>header button{border-radius:5px}
+.shell main{grid-template-columns:44px minmax(132px,176px) minmax(0,1fr) minmax(192px,236px);align-items:stretch}
+.shell .lab-toolrail{padding:8px 3px;gap:4px;background:#202023}
+.shell .lab-toolrail button{width:34px;height:34px;font-size:18px;border-radius:5px}
+.shell .library,.shell .properties{background:#1d1d20;padding:10px;min-width:0}
+.shell .library{border-color:var(--lab-line)}
+.shell .properties{border-color:var(--lab-line)}
+.shell .library h2,.shell .properties h2{font-size:13px;margin:3px 0 10px}
+.shell .library p{font-size:11px;line-height:1.4;margin:4px 0 10px}
+.shell .tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.shell .tile{padding:5px 2px;min-width:0;gap:3px;border-radius:5px}
+.shell .tile svg{width:35px;height:35px}
+.shell .tile span{font-size:9px;line-height:1.15;text-align:center;overflow-wrap:anywhere}
+.shell .workspace{background:#242427;padding:10px;gap:9px;align-items:stretch;justify-content:flex-start}
+.shell .workspace-title{font-size:11px;line-height:1.4}
+.shell .view-switch{gap:4px;align-items:center}
+.shell .view-switch button{font-size:10px;padding:6px 7px;min-height:29px}
+.shell .artboard{align-self:center;width:min(100%,80vh,1080px);box-shadow:0 10px 38px #0007}
+.shell .drawing-controls{align-self:stretch;justify-content:center;gap:5px;padding:4px 6px;min-height:36px}
+.shell .drawing-controls:not(.pencil-toolbar) input[type=number]{max-width:76px}
+.shell .drawing-controls:not(.pencil-toolbar) select{max-width:145px}
+.shell .pencil-toolbar{background:#1c1c1f;border:1px solid var(--lab-line);border-radius:7px;justify-content:center;flex-wrap:wrap}
+.shell .pencil-toolbar .pencil-tool{width:30px;height:29px;min-height:29px;padding:0;font-size:17px;border-radius:5px}
+.shell .pencil-toolbar .pencil-tool[aria-pressed=true]{background:#49301f;border-color:var(--lab-accent);color:#ff9b55}
+.shell .pencil-toolbar label{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#c4c4ca}
+.shell .pencil-toolbar input[type=color]{width:27px;height:25px}
+.shell .pencil-toolbar input[type=range]{width:84px;accent-color:var(--lab-accent)}
+.shell .pencil-toolbar output{font-size:10px;min-width:16px;text-align:right;color:var(--lab-muted)}
+.shell .layer-item{margin:5px 0;padding:3px}
+.shell .layer-item button{padding:4px;font-size:10px}
+.shell .properties label{font-size:11px;margin:9px 0}
+.shell .properties input[type=range]{margin-top:6px}
+.shell .animation-presets,.shell .overlay-controls,.shell .layers-panel{padding-bottom:11px;margin-bottom:12px}
+.shell .animation-presets select{padding:6px}
+.shell .timeline-panel{background:#1c1c1f;border-color:var(--lab-line);padding:9px;border-radius:7px}
+.shell .timeline-top{gap:6px;margin:5px 0;font-size:11px}
+.shell .timeline-top button{font-size:11px;padding:5px 7px}
+.shell .timeline-top select{max-width:135px}
+.shell .scene3d{max-width:none}
+.shell .scene3d-bar{gap:7px;margin:7px 0}
+.shell .scene3d-canvas{height:min(58vh,620px)}
+.shell .video-export{padding:9px;gap:7px;margin:10px 0}
+.shell.hide-library main{grid-template-columns:44px minmax(0,1fr) minmax(192px,236px)}
+.shell.hide-properties main{grid-template-columns:44px minmax(132px,176px) minmax(0,1fr)}
+.shell.hide-library.hide-properties main,.shell.focus-mode main{grid-template-columns:44px minmax(0,1fr)}
+@media(max-width:1100px){
+ .shell main,.shell.hide-library main,.shell.hide-properties main,.shell.hide-library.hide-properties main,.shell.focus-mode main{grid-template-columns:42px minmax(0,1fr)}
+ .shell .workspace{grid-column:2;grid-row:1;padding:9px}
+ .shell .library,.shell .properties{grid-column:2;max-height:none;width:100%}
+ .shell .lab-toolrail{grid-column:1;grid-row:1/span 3}
+ .shell .tiles{grid-template-columns:repeat(auto-fill,minmax(64px,1fr))}
+ .shell .artboard{width:min(100%,78vh,960px)}
+}
+@media(max-width:600px){
+ .shell .workspace{padding:6px;gap:7px}
+ .shell .view-switch{flex-wrap:wrap}
+ .shell .view-switch button{font-size:10px;padding:5px}
+ .shell .drawing-controls{justify-content:flex-start}
+ .shell .pencil-toolbar{justify-content:center}
+ .shell .pencil-toolbar label span{font-size:10px}
+ .shell .pencil-toolbar input[type=range]{width:70px}
+ .shell .artboard{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.shell button{transition:none}}
