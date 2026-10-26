@@ -29,7 +29,7 @@ export function generateLegacySVG(d:StudioDocument):string {
    const size=Math.min(sx,sy)*exp*(g==='focalPoint'?1.65-radial:1);
    const angle=g==='parallelism'?45:g==='commonFate'?Math.atan2(py-cy,px-cx)*180/Math.PI:d.rotation+(d.cellRotation??0)*Math.sin(i*.4);
    if(mode==='dots'){
-    const r=clamp(size*(.08+.34*(.5+.5*Math.sin(x/freq+y*.2+phase)))*(1-noise*.3),.4,Math.max(sx,sy)*3);
+    const localPhase=x/freq+y*.2+phase;const variation=Math.sin(localPhase)+noise*(randomAt(d.seed,i*31+3)*2-1);const localSize=size*(1+.55*noise*(randomAt(d.seed,i*29+9)*2-1));const r=clamp(localSize*(.08+.34*(.5+.5*variation))*(.35+amp/100),.4,Math.max(sx,sy)*3);
     parts.push('<circle cx="'+px+'" cy="'+py+'" r="'+r+'" fill="'+ink+'"/>');
    }else{
     const kind:ModuleKind=g==='similarity'||g==='praegnanz'?'circle':mode==='mosaic'?(['square','triangle','quarter','checker','diamond'] as ModuleKind[])[Math.floor(randomAt(d.seed,i*7)*5)]:kinds[Math.floor(randomAt(d.seed,i*7)*kinds.length)];
