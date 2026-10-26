@@ -1,5 +1,5 @@
 export type ModuleKind = 'circle' | 'square' | 'ring' | 'cross' | 'diamond' | 'quarter' | 'petals' | 'checker' | 'triangle' | 'bars' | 'arc' | 'star' | 'hexagon' | 'chevron' | 'semicircle' | 'diagonal' | 'spiral' | 'waves' | 'dots' | 'gridlines';
 export type Family = 'Básicos' | 'Teselaciones' | 'Radiales';
 export interface ModuleDefinition { id: ModuleKind; label: string; family: Family; }
-export type GestaltMode='none'|'proximity'|'similarity'|'continuity'|'closure';
+export type GestaltMode='none'|'proximity'|'similarity'|'continuity'|'closure'|'symmetry'|'figureGround'|'commonFate'|'praegnanz'|'connectedness'|'commonRegion'|'parallelism'|'focalPoint';
 export interface StudioDocument { gestalt?:GestaltMode; expand?:number; overflowMode?:'crop'|'outside'; canvasWidth?: number; canvasHeight?: number; seed: number; columns: number; rows: number; density: number; mix: number; rotation: number; active: ModuleKind[]; foreground: string; background: string; cellRotation?:number; cellScale?:number; cellWave?:number; generator?: 'grid' | 'waves'; waveAmplitude?: number; waveFrequency?: number; waveNoise?: number; waveLines?: number; waveDecay?: number; waveDistortion?: number; waveStrokeWidth?: number; waveStyle?: 'lines' | 'dots' | 'mesh' | 'ribbons' | 'contours'; waveDotSize?: number; waveMeshColumns?: number; }
