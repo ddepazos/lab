@@ -8,6 +8,28 @@ export function AnimationPresets({layerId,layerType,layer,timeline,onChange,onPr
  const canEdit=Boolean(layerId&&layerType&&layer&&!layer.locked);const patternOnly=['morph-grid','wave-cells','rotate-cells','scale-cells','staggered'].includes(preset);const activeTracks=timeline.tracks.filter(track=>track.layerId===layerId);
 
  const [amount,setAmount]=useState(80);
+ const [parameter,setParameter]=useState<Track['property']>('waveAmplitude');
+ const [variation,setVariation]=useState(30);
+ const parameters:{id:Track['property'];label:string;fallback:number}[]=[
+  {id:'waveAmplitude',label:'Amplitud',fallback:80},{id:'waveFrequency',label:'Frecuencia',fallback:2},
+  {id:'waveNoise',label:'Ruido',fallback:0},{id:'waveStrokeWidth',label:'Grosor',fallback:6},
+  {id:'waveDotSize',label:'Tamaño de puntos',fallback:6},{id:'waveDecay',label:'Decaimiento',fallback:0},
+  {id:'waveDistortion',label:'Distorsión',fallback:0},{id:'waveLines',label:'Líneas',fallback:8},
+  {id:'waveMeshColumns',label:'Columnas de malla',fallback:8},{id:'columns',label:'Columnas',fallback:8},
+  {id:'rows',label:'Filas',fallback:8},{id:'density',label:'Densidad',fallback:85},{id:'expand',label:'Expansión',fallback:0}
+ ];
+ const animateParameter=()=>{
+  if(!canEdit||layer?.type!=='pattern'||!layerId)return;
+  const definition=parameters.find(item=>item.id===parameter);
+  if(!definition)return;
+  const current=(layer.pattern as unknown as Record<string,unknown>)?.[parameter];
+  const base=typeof current==='number'?current:definition.fallback;
+  const delta=Math.max(0.1,Math.abs(base)*variation/100);
+  const duration=Math.max(.2,timeline.duration);
+  const keyframes=[{time:0,value:base,easing:'easeInOut' as const},{time:duration/2,value:base+delta,easing:'easeInOut' as const},{time:duration,value:base,easing:'easeInOut' as const}];
+  onChange({...timeline,tracks:[...timeline.tracks.filter(track=>!(track.layerId===layerId&&track.property===parameter)),{layerId,property:parameter,keyframes}]});
+  onPreview?.();
+ };
  const apply=()=>{if(!canEdit||!layerId||!layerType||!layer||(patternOnly&&layer.type!=='pattern'))return;
  const t=Math.max(.2,timeline.duration),v=Math.max(1,amount);
  const isText=layer.type==='text';
@@ -35,5 +57,5 @@ export function AnimationPresets({layerId,layerType,layer,timeline,onChange,onPr
  onChange({...timeline,duration:t,tracks:[...timeline.tracks.filter(track=>!(track.layerId===layerId&&track.property===property)),{layerId,property,keyframes}]});
  onPreview?.();
  };
- return <section className="animation-presets"><h2>Animación 2D · Presets</h2><p className="note">{layer?`Capa seleccionada: ${layer.name}${layer.locked?" (bloqueada)":""}`:"Selecciona una capa para aplicar un efecto."} · {activeTracks.length} pista(s) activas</p><label>Efecto<select value={preset} onChange={e=>setPreset(e.target.value as Preset)}>{presets.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><label>Intensidad: {amount}<input type="range" min="5" max="180" value={amount} onChange={e=>setAmount(Number(e.target.value))}/></label><button disabled={!canEdit||(patternOnly&&layerType!=='pattern')} onClick={apply}>+ Aplicar a capa</button><button disabled={!canEdit||!activeTracks.length} onClick={()=>{onChange({...timeline,tracks:timeline.tracks.filter(t=>t.layerId!==layerId)});onPreview?.();}}>Quitar animaciones de capa</button><p className="note">Al aplicar un movimiento se inicia una vista previa desde el comienzo.</p></section>
+ return <section className="animation-presets"><h2>Animación 2D · Presets</h2><p className="note">{layer?`Capa seleccionada: ${layer.name}${layer.locked?" (bloqueada)":""}`:"Selecciona una capa para aplicar un efecto."} · {activeTracks.length} pista(s) activas</p><label>Efecto<select value={preset} onChange={e=>setPreset(e.target.value as Preset)}>{presets.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><label>Intensidad: {amount}<input type="range" min="5" max="180" value={amount} onChange={e=>setAmount(Number(e.target.value))}/></label><button disabled={!canEdit||(patternOnly&&layerType!=='pattern')} onClick={apply}>+ Aplicar a capa</button><button disabled={!canEdit||!activeTracks.length} onClick={()=>{onChange({...timeline,tracks:timeline.tracks.filter(t=>t.layerId!==layerId)});onPreview?.();}}>Quitar animaciones de capa</button><div className="parameter-animation"><h3>Animar parámetros del generador</h3><label>Parámetro<select value={parameter} onChange={e=>setParameter(e.target.value as Track['property'])}>{parameters.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select></label><label>Variación: {variation}%<input type="range" min="1" max="200" value={variation} onChange={e=>setVariation(Number(e.target.value))}/></label><button disabled={!canEdit||layerType!=='pattern'} onClick={animateParameter}>+ Animar parámetro</button><p className="note">La pista se reproduce en la línea de tiempo y utiliza los mismos fotogramas durante la exportación de video.</p></div><p className="note">Al aplicar un movimiento se inicia una vista previa desde el comienzo.</p></section>
 }
