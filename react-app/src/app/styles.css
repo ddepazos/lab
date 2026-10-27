@@ -456,7 +456,7 @@ body{background:var(--lab-bg);color:var(--lab-ink)}
    The available preview height is bounded, while real document pixels stay unchanged. */
 @media(min-width:651px){
  .shell:not(.focus-mode) main{height:calc(100dvh - 104px);min-height:420px;overflow:hidden;align-items:stretch}
- .shell:not(.focus-mode) .workspace{min-height:0;max-height:100%;overflow:hidden;justify-content:flex-start;gap:7px;padding:8px 10px;align-items:stretch}
+ .shell:not(.focus-mode) .workspace{min-height:0;max-height:100%;overflow-y:auto;overflow-x:hidden;justify-content:flex-start;gap:7px;padding:8px 10px;align-items:stretch}
  .shell:not(.focus-mode) .workspace>.view-switch,
  .shell:not(.focus-mode) .workspace>.workspace-title,
  .shell:not(.focus-mode) .workspace>.drawing-controls{flex:0 0 auto}
@@ -476,7 +476,7 @@ body{background:var(--lab-bg);color:var(--lab-ink)}
  .shell:not(.focus-mode) .lab-persistent-timeline{flex:0 0 auto;max-height:clamp(105px,22dvh,185px);overflow:auto}
  .shell:not(.focus-mode) .lab-bottom-dock{flex:0 0 auto;min-height:29px;padding:3px 5px}
  .shell:not(.focus-mode) .lab-bottom-dock button{font-size:10px;padding:3px 6px}
- .shell:not(.focus-mode) .lab-bottom-panel{flex:0 1 auto;min-height:0;max-height:min(32dvh,280px);overflow:auto}
+ .shell:not(.focus-mode) .lab-bottom-panel{flex:0 0 auto;min-height:0;max-height:min(32dvh,280px);overflow:auto}
  .shell:not(.focus-mode) .library,.shell:not(.focus-mode) .properties{min-height:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain}
 }
 @media(max-width:650px){
