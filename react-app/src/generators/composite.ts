@@ -40,7 +40,9 @@ export function composeSVG(background:string,layers:Layer[],fallback:StudioDocum
    const id=`lab-repeat-${index}`;
    const dx=((l.x??0)%width+width)%width;
    const dy=((l.y??0)%height+height)%height;
-   content=`<defs><pattern id="${id}" patternUnits="userSpaceOnUse" width="${width}" height="${height}" patternTransform="translate(${dx} ${dy})">${content}</pattern></defs><rect width="${width}" height="${height}" fill="url(#${id})"/>`;
+   // Pattern content is a full-size SVG fragment. Translate it into each tile's
+   // local coordinate system; the SVG pattern itself supplies seamless wrapping.
+   content=`<defs><pattern id="${id}" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" width="${width}" height="${height}" patternTransform="translate(${dx} ${dy})"><g>${content}</g></pattern></defs><rect width="${width}" height="${height}" fill="url(#${id})"/>`;
   }
   const rotation=l.rotation??0;
   const scale=Math.max(.01,l.scale??1);
