@@ -26,3 +26,7 @@ Fecha: 2026-10-27. Estado: **especificación documentada; implementación React 
 ## Pendientes
 
 Localizar componentes actuales de layout y controles en main, implementar refactor mínimo, validar y desplegar. No marcar como completado hasta verificar commit, compilación y despliegue.
+
+## Implementación inicial en main (2026-10-27)
+
+Código React localizado en `react-app/src/app/App.tsx` y estilos en `react-app/src/app/styles.css`. Dock contextual con cinco secciones, un panel abierto a la vez, botón de cierre, controles existentes reutilizados y lienzo sin bordes redondeados. Commits: `ee124788`, `76bb04df`, `685c0b18`. **Pendiente:** ejecutar build, pruebas funcionales y comprobar despliegue; no se declara listo para producción. El redimensionamiento, persistencia de disposición y desacoplamiento de línea de tiempo quedan para iteración posterior.
