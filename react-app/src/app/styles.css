@@ -258,3 +258,13 @@
 .shell .lab-timeline-advanced{padding:8px 0 3px;border-top:1px solid #444}
 .shell .lab-bottom-dock{min-height:34px}
 @media(max-width:650px){.shell .lab-track-lane{grid-template-columns:90px minmax(0,1fr)}.shell .lab-track-lanes{max-height:125px}}
+
+/* Minimal controls on collapsible animation layer lanes */
+.shell .lab-track-lane{align-items:start}
+.shell .lab-track-name{width:100%;height:25px;min-height:25px;text-align:left;background:transparent;border:0;border-radius:0;padding:4px 7px;color:#ddd;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shell .lab-track-name:hover{background:#3a302a}
+.shell .lab-track-region{min-width:0}
+.shell .lab-track-bar{display:flex;align-items:center;justify-content:space-between;padding:1px 4px}
+.shell .lab-track-remove{width:17px;height:17px;min-height:17px;padding:0;border:0;background:transparent;color:#ccc;font-size:14px;line-height:1;position:relative;z-index:2}
+.shell .lab-track-remove:hover{color:#ff6900}
+.shell .lab-track-lanes{max-height:150px}
