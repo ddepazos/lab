@@ -11,6 +11,7 @@ import {composeSVG} from '../generators/composite';
 export function composeFrame(layers:Layer[],timeline:Timeline,time:number,doc:StudioDocument){
  const frameLayers=animatedLayers(layers,timeline,time);
  return {
+  layers:frameLayers,
   previewSvg:composeSVG(doc.background,frameLayers.filter(layer=>layer.type!=='text'),doc),
   exportSvg:composeSVG(doc.background,frameLayers,doc),
  };
