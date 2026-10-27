@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import type {Timeline,Track,Easing} from '../animation/timeline';
 import type {Layer} from '../document/layers';
+import {advancePlaybackTime,previewFrameInterval} from '../animation/playback-clock';
 export function TimelinePanel({layers,selectedLayer,time,setTime,timeline,setTimeline,exportActive=false,previewToken=0}:{exportActive?:boolean;previewToken?:number;layers:Layer[];selectedLayer:string;time:number;setTime:(t:number)=>void;timeline:Timeline;setTimeline:(t:Timeline)=>void}){
  const [playing,setPlaying]=useState(false);
  const [speed,setSpeed]=useState(1);
@@ -16,7 +17,7 @@ export function TimelinePanel({layers,selectedLayer,time,setTime,timeline,setTim
  const lastPaint=useRef<number|null>(null);
  const timeRef=useRef(time);
  useEffect(()=>{timeRef.current=time;},[time]);
- useEffect(()=>{if(!playing||exportActive)return;let frame=0;const duration=Math.max(.2,timeline.duration);const fps=Math.min(30,Math.max(1,timeline.fps||24));const tick=(now:number)=>{const previous=clock.current;clock.current=now;if(previous!==null){const elapsed=Math.min(.1,Math.max(0,(now-previous)/1000));const next=timeRef.current+elapsed*speed;const t=timeline.loop?next%duration:Math.min(next,duration);timeRef.current=t;if(lastPaint.current===null||now-lastPaint.current>=1000/fps||(!timeline.loop&&t>=duration)){lastPaint.current=now;setTime(t);}if(!timeline.loop&&t>=duration){setPlaying(false);return;}}frame=requestAnimationFrame(tick);};frame=requestAnimationFrame(tick);return()=>{cancelAnimationFrame(frame);clock.current=null;lastPaint.current=null;};},[playing,exportActive,timeline.duration,timeline.loop,timeline.fps,setTime,speed]);
+ useEffect(()=>{if(!playing||exportActive)return;let frame=0;const duration=Math.max(.2,timeline.duration);const frameInterval=previewFrameInterval(timeline.fps||24);const tick=(now:number)=>{const previous=clock.current;clock.current=now;if(previous!==null){const elapsed=(now-previous)/1000;const t=advancePlaybackTime(timeRef.current,elapsed,speed,duration,timeline.loop);timeRef.current=t;if(lastPaint.current===null||now-lastPaint.current>=frameInterval||(!timeline.loop&&t>=duration)){lastPaint.current=now;setTime(t);}if(!timeline.loop&&t>=duration){setPlaying(false);return;}}frame=requestAnimationFrame(tick);};frame=requestAnimationFrame(tick);return()=>{cancelAnimationFrame(frame);clock.current=null;lastPaint.current=null;};},[playing,exportActive,timeline.duration,timeline.loop,timeline.fps,setTime,speed]);
  useEffect(()=>{if(exportActive)setPlaying(false)},[exportActive]);
  useEffect(()=>{if(previewToken>0&&!exportActive){clock.current=null;lastPaint.current=null;timeRef.current=0;setTime(0);setPlaying(true)}},[previewToken,exportActive,setTime]);
  const layer=layers.find(l=>l.id===selectedLayer);
