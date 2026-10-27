@@ -8,11 +8,11 @@ import {composeSVG} from '../generators/composite';
  * Preview excludes text (rendered by the text overlay); export includes it.
  * Keep both outputs consistent with the existing editor contract.
  */
-export function composeFrame(layers:Layer[],timeline:Timeline,time:number,doc:StudioDocument){
+export function composeFrame(layers:Layer[],timeline:Timeline,time:number,doc:StudioDocument,includeExport=true){
  const frameLayers=animatedLayers(layers,timeline,time);
  return {
   layers:frameLayers,
   previewSvg:composeSVG(doc.background,frameLayers.filter(layer=>layer.type!=='text'),doc),
-  exportSvg:composeSVG(doc.background,frameLayers,doc),
+  exportSvg:includeExport?composeSVG(doc.background,frameLayers,doc):'',
  };
 }
