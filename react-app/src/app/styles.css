@@ -268,3 +268,44 @@
 .shell .lab-track-remove{width:17px;height:17px;min-height:17px;padding:0;border:0;background:transparent;color:#ccc;font-size:14px;line-height:1;position:relative;z-index:2}
 .shell .lab-track-remove:hover{color:#ff6900}
 .shell .lab-track-lanes{max-height:150px}
+
+/* LAB ultra-compact editor controls, typography and animation lanes */
+.shell .lab-menubar{font-size:10px;min-height:30px;height:auto;padding:0 7px;gap:0}
+.shell .lab-menubar summary{padding:6px 7px;font-size:10px}
+.shell .lab-menubar>strong{font-size:14px;margin-right:8px}
+.shell .lab-menubar .lab-brand-logo{width:23px;height:23px}
+.shell>header{min-height:34px;padding:3px 7px;gap:5px}
+.shell>header button,.shell>header label,.shell>header select{font-size:10px;padding:4px 6px}
+.shell .lab-toolrail{gap:2px;padding:5px 2px}
+.shell .lab-toolrail button{width:29px;height:29px;font-size:15px;padding:0}
+.shell .workspace{gap:6px;padding:7px}
+.shell .view-switch{gap:3px}
+.shell .view-switch button{min-height:24px;padding:4px 6px;font-size:10px}
+.shell .workspace-title{font-size:10px}
+.shell .drawing-controls{min-height:29px;gap:3px;padding:3px 4px}
+.shell .drawing-controls label,.shell .drawing-controls button{font-size:10px}
+.shell .drawing-controls button{min-height:23px;padding:3px 5px}
+.shell .pencil-toolbar{min-height:29px;padding:2px 4px}
+.shell .pencil-toolbar .pencil-tool{width:25px;height:25px;min-height:25px;font-size:14px}
+.shell .library,.shell .properties{font-size:10px;padding:7px}
+.shell .library h2,.shell .properties h2{font-size:12px;margin-bottom:7px}
+.shell .properties label,.shell .properties button,.shell .properties select,.shell .properties input{font-size:10px}
+.shell .properties button{padding:4px 5px}
+.shell .lab-persistent-timeline .timeline-panel{padding:5px 6px}
+.shell .lab-persistent-timeline .timeline-top{gap:4px;margin:2px 0;font-size:10px}
+.shell .lab-persistent-timeline .timeline-top button,.shell .lab-persistent-timeline .timeline-top select,.shell .lab-persistent-timeline .timeline-top input{font-size:10px;padding:2px 5px;min-height:22px}
+.shell .lab-persistent-timeline .timeline-top input[type=number]{width:43px}
+.shell .lab-persistent-timeline .timeline-panel>input[type=range]{height:12px;margin:2px 0}
+.shell .lab-track-lanes{gap:1px;max-height:125px;margin:3px 0}
+.shell .lab-track-lane{grid-template-columns:minmax(75px,112px) minmax(0,1fr);min-height:20px;font-size:9px}
+.shell .lab-track-name{height:21px;min-height:21px;font-size:9px;padding:3px 5px}
+.shell .lab-track-region{min-height:19px;padding:1px 3px;gap:1px}
+.shell .lab-track-bar{height:17px;font-size:9px;padding:1px 3px}
+.shell .lab-track-remove{width:15px;height:15px;min-height:15px;font-size:12px}
+.shell .lab-bottom-dock{min-height:29px;padding:3px;gap:3px}
+.shell .lab-bottom-dock button{font-size:10px;padding:4px 6px}
+.shell .lab-bottom-panel-head{font-size:10px;padding:3px 6px}
+.shell .lab-bottom-panel-content{padding:6px;font-size:10px}
+.shell .lab-bottom-panel-content button,.shell .lab-bottom-panel-content label,.shell .lab-bottom-panel-content select{font-size:10px}
+.shell .artboard{border-radius:0!important}
+@media(max-width:650px){.shell .workspace{padding:5px;gap:5px}.shell .lab-track-lane{grid-template-columns:78px minmax(0,1fr)}.shell .lab-track-lanes{max-height:105px}.shell .lab-bottom-dock button{padding:4px 5px}}
