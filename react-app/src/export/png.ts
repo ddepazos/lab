@@ -1,5 +1,8 @@
 /** Rasterize the SVG at its document aspect ratio, independent of CSS preview size. */
 export async function downloadPNG(svg:string,filename='LAB-composicion.png',size=1600,board?:HTMLElement|null):Promise<void>{
+ const parsed=new DOMParser().parseFromString(svg,'image/svg+xml');
+ const parserError=parsed.querySelector('parsererror');
+ if(parserError||parsed.documentElement.localName!=='svg')throw new Error(`SVG inválido: ${parserError?.textContent?.trim().slice(0,180)??'raíz SVG ausente'}`);
  const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});
  const url=URL.createObjectURL(blob);
  try{
@@ -9,8 +12,7 @@ export async function downloadPNG(svg:string,filename='LAB-composicion.png',size
    img.onerror=()=>reject(new Error('No se pudo renderizar el SVG'));
    img.src=url;
   });
-  const doc=new DOMParser().parseFromString(svg,'image/svg+xml');
-  const root=doc.documentElement;
+  const root=parsed.documentElement;
   const viewBox=root.getAttribute('viewBox')?.trim().split(/[\s,]+/).map(Number);
   const widthAttr=Number.parseFloat(root.getAttribute('width')??'');
   const heightAttr=Number.parseFloat(root.getAttribute('height')??'');
