@@ -38,3 +38,10 @@
 - Sin ramas nuevas; no tocar lápiz ni lienzos estables; preservar main, FFmpeg, render remoto y Tauri.
 - No declarar una herramienta funcional solo porque CI esté verde.
 - Implementar mejoras incrementales y añadir pruebas antes de ampliar efectos.
+
+## Implementación posterior — optimización de composición
+- `composeFrame(..., includeExport=false)` permite generar solo el SVG de vista previa.
+- `App.tsx` evita construir `exportSvg` en cada actualización de tiempo; `buildExportSvg()` genera el SVG completo únicamente al pulsar exportar SVG o PNG.
+- La llamada anterior a `composeFrame` conserva su contrato predeterminado (`includeExport=true`).
+- Nuevo test `src/core/compose-frame.test.ts` para modo preview, exportación explícita y compatibilidad.
+- **Pendiente:** verificar CI de los nuevos commits, comparar salida SVG/PNG y medir FPS reales. Esta optimización no garantiza por sí sola fluidez ni corrige diferencias de 3D/texto con MP4.
