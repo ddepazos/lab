@@ -309,3 +309,49 @@
 .shell .lab-bottom-panel-content button,.shell .lab-bottom-panel-content label,.shell .lab-bottom-panel-content select{font-size:10px}
 .shell .artboard{border-radius:0!important}
 @media(max-width:650px){.shell .workspace{padding:5px;gap:5px}.shell .lab-track-lane{grid-template-columns:78px minmax(0,1fr)}.shell .lab-track-lanes{max-height:105px}.shell .lab-bottom-dock button{padding:4px 5px}}
+
+/* LAB compact contextual controls: reduce internal whitespace without changing behavior. */
+.shell .lab-bottom-panel-content .animation-presets{
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(135px,1fr);
+  gap:5px 10px;align-items:end;margin:0;padding:0;border:0;
+}
+.shell .lab-bottom-panel-content .animation-presets>h2,
+.shell .lab-bottom-panel-content .animation-presets>.note,
+.shell .lab-bottom-panel-content .animation-presets>.parameter-animation{
+  grid-column:1/-1;
+}
+.shell .lab-bottom-panel-content .animation-presets h2{font-size:12px;line-height:1.3;margin:0}
+.shell .lab-bottom-panel-content .animation-presets .note{
+  margin:0;color:#aaa;font-size:10px;line-height:1.35;
+}
+.shell .lab-bottom-panel-content .animation-presets label{
+  display:flex;flex-direction:column;gap:3px;margin:0;min-width:0;
+  font-size:10px;line-height:1.3;
+}
+.shell .lab-bottom-panel-content .animation-presets select{
+  width:100%;min-width:0;padding:4px 6px;min-height:25px;
+}
+.shell .lab-bottom-panel-content .animation-presets input[type=range]{
+  width:100%;height:16px;margin:0;accent-color:#ff6900;
+}
+.shell .lab-bottom-panel-content .animation-presets button{
+  width:100%;min-height:25px;margin:0;padding:4px 6px;white-space:normal;
+}
+.shell .lab-bottom-panel-content .animation-presets .parameter-animation{
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(135px,1fr);
+  gap:5px 10px;align-items:end;margin:3px 0 0;padding:6px 0 0;
+  border-top:1px solid #38383d;
+}
+.shell .lab-bottom-panel-content .animation-presets .parameter-animation h3,
+.shell .lab-bottom-panel-content .animation-presets .parameter-animation .note{
+  grid-column:1/-1;margin:0;
+}
+.shell .lab-bottom-panel-content .animation-presets .parameter-animation h3{
+  font-size:11px;line-height:1.35;
+}
+@media(max-width:520px){
+  .shell .lab-bottom-panel-content .animation-presets,
+  .shell .lab-bottom-panel-content .animation-presets .parameter-animation{
+    grid-template-columns:minmax(0,1fr);
+  }
+}
