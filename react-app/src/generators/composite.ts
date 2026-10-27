@@ -6,7 +6,7 @@ import {generateLegacySVG} from './legacy';
 const escapeXml=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]!));
 function svgTextContent(layer:Layer,fallback:StudioDocument):string{
  const x=layer.x??400,y=layer.y??400,size=layer.fontSize??100;
- const family=escapeXml(layer.fontFamily??'Inter'),fill=layer.fill??fallback.foreground;
+ const family=escapeXml(layer.fontFamily??'Inter'),fill=escapeXml(layer.fill??fallback.foreground);
  const area=layer.textMode==='area',width=layer.textWidth??500;
  const raw=layer.text??'LAB';
  const lines:string[]=[];
@@ -49,5 +49,5 @@ export function composeSVG(background:string,layers:Layer[],fallback:StudioDocum
   const transform=l.type==='image'?` transform="translate(${l.x??0} ${l.y??0}) scale(${scale}) translate(-${l.x??0} -${l.y??0})"`:l.type==='pattern'?` transform="${repeatMotion?'':`translate(${l.x??0} ${l.y??0}) `}translate(${width/2} ${height/2}) rotate(${rotation}) scale(${scale}) translate(-${width/2} -${height/2})"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
   return `<g${l.type==='pattern'||l.type==='image'?'':` transform="translate(${offsetX} ${offsetY}) scale(${factor})"`}><g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g></g>`;
  });
- return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${background}"/>${parts.join('')}</svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${escapeXml(background)}"/>${parts.join('')}</svg>`;
 }
