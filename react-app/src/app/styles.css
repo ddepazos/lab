@@ -371,3 +371,13 @@
   max-width:100%;
  }
 }
+
+/* Timeline: independent compact layer lanes, shared horizontal scroll and wheel zoom. */
+.shell .lab-timeline-zoom{gap:5px;margin:2px 0;align-items:center;font-size:10px}
+.shell .lab-timeline-zoom button{min-width:23px;min-height:21px;padding:2px 5px}
+.shell .lab-timeline-zoom output{min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+.shell .lab-timeline-zoom small{font-size:9px;color:#a9a9b1}
+.shell .lab-track-region{display:block;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;overscroll-behavior-x:contain}
+.shell .lab-track-content{display:flex;flex-direction:column;gap:1px;min-width:100%;min-height:17px;padding:1px 2px;box-sizing:border-box}
+.shell .lab-track-content .lab-track-bar{flex-shrink:0;width:100%;box-sizing:border-box}
+@media(max-width:650px){.shell .lab-timeline-zoom small{display:none}}
