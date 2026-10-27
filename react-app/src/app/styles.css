@@ -399,3 +399,55 @@
 .shell .lab-bottom-panel-content{min-width:0;max-width:100%;overflow-x:hidden}
 .shell .lab-bottom-dock{min-width:0;max-width:100%;flex-wrap:wrap}
 @media(max-width:650px){.shell .lab-track-lane{grid-template-columns:78px minmax(0,1fr)}}
+
+/* LAB graphite theme — neutral charcoal surfaces, warm off-white ink.
+   Scoped to editor chrome: never recolor generated artwork, SVG or WebGL canvases. */
+:root{
+ color-scheme:dark;
+ --lab-bg:#24262b;
+ --lab-surface:#2d3036;
+ --lab-surface-raised:#373b42;
+ --lab-surface-hover:#42464e;
+ --lab-stroke:#50545d;
+ --lab-stroke-soft:#41454d;
+ --lab-ink:#e0ded8;
+ --lab-ink-muted:#b6b5b1;
+ --lab-ink-subtle:#989ba2;
+ --lab-accent:#e99a65;
+ font-family:Inter,"Segoe UI",Roboto,system-ui,sans-serif;
+ color:var(--lab-ink);background:var(--lab-bg);
+}
+body{background:var(--lab-bg);color:var(--lab-ink)}
+.shell{background:var(--lab-bg);color:var(--lab-ink)}
+.shell>header,.lab-menubar,.lab-author-credit{background:var(--lab-surface);border-color:var(--lab-stroke-soft);color:var(--lab-ink)}
+.shell .library,.shell .properties,.lab-toolrail{background:var(--lab-surface);border-color:var(--lab-stroke-soft);color:var(--lab-ink)}
+.shell .workspace{background:var(--lab-bg)}
+.shell .timeline-panel,.shell .lab-bottom-panel,.shell .lab-persistent-timeline,.shell .lab-bottom-dock{background:var(--lab-surface);border-color:var(--lab-stroke-soft);color:var(--lab-ink)}
+.shell .lab-track-lane,.shell .lab-track-region,.shell .lab-track-bar{background:var(--lab-surface-raised);border-color:var(--lab-stroke-soft);color:var(--lab-ink)}
+.shell .lab-track-lane.selected,.shell .layer-item.current{border-color:var(--lab-accent)}
+.shell .tile,.shell .layer-item,.shell .drawing-controls,.shell .pencil-toolbar{background:var(--lab-surface-raised);border-color:var(--lab-stroke-soft);color:var(--lab-ink)}
+.shell .tile.selected{background:#4a403b;border-color:var(--lab-accent)}
+.shell button,.shell .project-import{background:var(--lab-surface-raised);border-color:var(--lab-stroke);color:var(--lab-ink)}
+.shell button:hover:not(:disabled){background:var(--lab-surface-hover);border-color:var(--lab-accent)}
+.shell button:focus-visible,.shell input:focus-visible,.shell select:focus-visible,.shell textarea:focus-visible{outline:2px solid var(--lab-accent);outline-offset:2px}
+.shell button:disabled{color:var(--lab-ink-subtle)}
+.shell>header button{background:#b97750;border-color:#b97750;color:#25262a}
+.shell>header button:hover:not(:disabled){background:#d18c60}
+.shell input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
+.shell select,.shell textarea{background:var(--lab-surface-raised);border:1px solid var(--lab-stroke);color:var(--lab-ink);border-radius:4px}
+.shell input::placeholder,.shell textarea::placeholder{color:var(--lab-ink-subtle)}
+.shell input[type="range"],.shell input[type="checkbox"],.shell input[type="radio"]{accent-color:var(--lab-accent)}
+.shell p,.shell .note,.shell .workspace-title,.shell .footer-controls,.shell .lab-author-credit,.shell .lab-menu-popover small{color:var(--lab-ink-muted)}
+.shell .properties label,.shell .timeline-top label,.shell .animation-presets label{color:var(--lab-ink-muted)}
+.shell .properties output,.shell .timeline-top output{color:var(--lab-ink)}
+.shell .lab-menubar>strong,.shell .lab-menubar-label,.shell .lab-author-credit span:first-child{color:var(--lab-accent)}
+.shell .lab-menubar summary:hover,.shell .lab-menubar details[open]>summary{background:var(--lab-surface-hover)}
+.shell .lab-menu-popover{background:var(--lab-surface-raised);border-color:var(--lab-stroke);color:var(--lab-ink);box-shadow:0 10px 24px #15171b55}
+.shell .lab-menu-popover button{background:transparent;border-color:transparent}
+.shell .lab-menu-popover button:hover:not(:disabled){background:var(--lab-surface-hover)}
+.shell .lab-toolrail button{background:transparent}
+.shell .lab-toolrail button:hover,.shell .lab-toolrail button[aria-pressed="true"]{background:#51443c;border-color:var(--lab-accent)}
+.shell .lab-track-remove{background:var(--lab-surface-hover)}
+.shell .lab-timeline-zoom small{color:var(--lab-ink-subtle)}
+.shell .animation-presets select,.shell .overlay-controls select,.shell .scene3d-bar select,.shell .video-export select{background:var(--lab-surface-raised);color:var(--lab-ink);border-color:var(--lab-stroke)}
+/* Keep the editor's neutral UI separate from the user's chosen artboard colors. */
