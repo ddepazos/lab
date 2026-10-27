@@ -44,10 +44,11 @@ export function composeSVG(background:string,layers:Layer[],fallback:StudioDocum
    // local coordinate system; the SVG pattern itself supplies seamless wrapping.
    content=`<defs><pattern id="${id}" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" width="${width}" height="${height}" patternTransform="translate(${dx} ${dy})"><g>${content}</g></pattern></defs><rect width="${width}" height="${height}" fill="url(#${id})"/>`;
   }
+  const projection=l.projection==='isometric'?`translate(${width/2} ${height/2}) matrix(0.866 0.5 -0.866 0.5 0 0) translate(-${width/2} -${height/2})`:l.projection==='oblique'?`translate(${width/2} ${height/2}) matrix(1 0.18 -0.38 0.82 0 0) translate(-${width/2} -${height/2})`:'';
   const rotation=l.rotation??0;
   const scale=Math.max(.01,l.scale??1);
   const transform=l.type==='image'?` transform="translate(${l.x??0} ${l.y??0}) scale(${scale}) translate(-${l.x??0} -${l.y??0})"`:l.type==='pattern'?` transform="${repeatMotion?'':`translate(${l.x??0} ${l.y??0}) `}translate(${width/2} ${height/2}) rotate(${rotation}) scale(${scale}) translate(-${width/2} -${height/2})"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
-  return `<g${l.type==='pattern'||l.type==='image'?'':` transform="translate(${offsetX} ${offsetY}) scale(${factor})"`}><g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g></g>`;
+  return `<g${l.type==='pattern'||l.type==='image'?'':` transform="translate(${offsetX} ${offsetY}) scale(${factor})"`}><g${projection?` transform="${projection}"`:''}><g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g></g></g>`;
  });
  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${escapeXml(background)}"/>${parts.join('')}</svg>`;
 }
