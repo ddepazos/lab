@@ -355,3 +355,19 @@
     grid-template-columns:minmax(0,1fr);
   }
 }
+
+/* Let the preview fill the available editor column at any document aspect ratio.
+   Export dimensions and SVG viewBox remain unchanged. */
+@media(min-width:651px){
+ .shell .workspace .artboard{
+  width:100%;
+  max-width:100%;
+  max-height:none;
+  align-self:stretch;
+ }
+ .shell.focus-mode .workspace .artboard,
+ .shell.hide-library.hide-properties .workspace .artboard{
+  width:100%;
+  max-width:100%;
+ }
+}
