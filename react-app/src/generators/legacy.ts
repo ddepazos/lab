@@ -8,7 +8,7 @@ export function generateLegacySVG(d:StudioDocument):string {
  const mode=d.generator??'mosaic',g=d.gestalt??'none',ink=d.foreground;
  const n=clamp(Math.round(d.columns??8),2,35),rows=clamp(Math.round(d.rows??8),2,35);
  const amp=clamp(d.waveAmplitude??48,0,150),freq=clamp(d.waveFrequency??4,.1,20);
- const undulation=clamp((d.waveUndulation??100)/100,0,1);
+ const undulation=clamp((d.waveUndulation??100)/100,0,2);
  const noise=clamp((d.waveNoise??25)/100,0,1),exp=clamp((d.expand??100)/100,.4,6);
  const density=clamp((d.density??85)/100,0,1),phase=(d.cellRotation??0)*Math.PI/180;
  const parts:string[]=[];const cx=w/2,cy=h/2;
