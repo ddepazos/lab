@@ -48,7 +48,8 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
  const [busy,setBusy]=useState(false),[status,setStatus]=useState('');
  const [resolution,setResolution]=useState(800);
  const [fps,setFps]=useState(30),[format,setFormat]=useState<'mp4'|'webm'>('mp4');
- const record=async()=>{
+ const [menuOpen,setMenuOpen]=useState(false);
+ const record=async(selectedFormat:'mp4'|'webm')=>{
   if(busy)return;
   const board=document.querySelector<HTMLElement>(artboardSelector);
   if(!board){setStatus('No se encontró el lienzo');return}
@@ -69,8 +70,8 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
    await document.fonts.ready;
    await raf();await raf();
    const target=new BufferTarget();
-   const output=new Output({format:format==='mp4'?new Mp4OutputFormat():new WebMOutputFormat(),target});
-   const source=new CanvasSource(canvas,{codec:format==='mp4'?'avc':'vp9',quality:new Quality('high')});
+   const output=new Output({format:selectedFormat==='mp4'?new Mp4OutputFormat():new WebMOutputFormat(),target});
+   const source=new CanvasSource(canvas,{codec:selectedFormat==='mp4'?'avc':'vp9',quality:new Quality('high')});
    output.addVideoTrack(source,{frameRate:fps});
    await output.start();
    let previousSvg='',previousImage:HTMLImageElement|null=null;
@@ -105,14 +106,14 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
    await output.finalize();
    if(!target.buffer||target.buffer.byteLength<1024)throw new Error('El codificador devolvió un archivo vacío');
    const bytes=new Uint8Array(target.buffer);
-   const blob=new Blob([bytes],{type:format==='mp4'?'video/mp4':'video/webm'});
+   const blob=new Blob([bytes],{type:selectedFormat==='mp4'?'video/mp4':'video/webm'});
    const check=new Input({source:new BlobSource(blob),formats:ALL_FORMATS});
    const actualDuration=await check.computeDuration();
    if(!Number.isFinite(actualDuration)||Math.abs(actualDuration-seconds)>Math.max(.15,2/fps))throw new Error('Duración inválida: '+actualDuration.toFixed(2)+' s en lugar de '+seconds+' s. No se descargó el archivo.');
-   download(blob,format);
+   download(blob,selectedFormat);
    setStatus('Exportación completada: '+seconds+' s · '+exportWidth+' × '+exportHeight+' · '+total+' fotogramas · '+(bytes.byteLength/1048576).toFixed(1)+' MB');
   }catch(error){console.error('LAB export',error);setStatus('Error: '+(error instanceof Error?error.message:String(error)))}
   finally{window.dispatchEvent(new Event('lab:export-end'));onComplete();onExportStateChange?.(false);setBusy(false)}
  };
- return <section className="video-export"><h2>Exportar animación</h2><label>Formato<select value={format} disabled={busy} onChange={e=>setFormat(e.target.value as 'mp4'|'webm')}><option value="mp4">MP4</option><option value="webm">WebM</option></select></label><label>Resolución<select value={resolution} disabled={busy} onChange={e=>setResolution(Number(e.target.value))}><option value={800}>800 px · lado mayor</option><option value={1080}>1080 px · lado mayor</option><option value={2160}>2160 px · lado mayor</option></select></label><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><button disabled={busy} onClick={record}>{busy?'Renderizando…':'↓ Exportar video'}</button><p role="status" className="note">{status||'Renderiza cada fotograma con tiempos exactos e incluye las capas 2D y 3D.'}</p></section>;
+ return <section className="video-export"><h2>Exportar animación</h2><label>Resolución<select value={resolution} disabled={busy} onChange={e=>setResolution(Number(e.target.value))}><option value={800}>800 px · lado mayor</option><option value={1080}>1080 px · lado mayor</option><option value={2160}>2160 px · lado mayor</option></select></label><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><div className="lab-download-menu"><button type="button" aria-haspopup="true" aria-expanded={menuOpen} disabled={busy} onClick={()=>setMenuOpen(value=>!value)}>{busy?'Renderizando…':'↓ Exportar video ▾'}</button>{menuOpen&&!busy&&<div className="lab-download-options" role="group" aria-label="Tipos de descarga"><button type="button" onClick={()=>{setFormat('mp4');setMenuOpen(false);void record('mp4')}}>Descargar MP4 · H.264</button><button type="button" onClick={()=>{setFormat('webm');setMenuOpen(false);void record('webm')}}>Descargar WebM · VP9</button></div>}</div><p role="status" className="note">{status||'Renderiza cada fotograma con tiempos exactos e incluye las capas 2D y 3D.'}</p></section>;
 }
