@@ -461,8 +461,8 @@ body{background:var(--lab-bg);color:var(--lab-ink)}
  .shell:not(.focus-mode) .workspace>.workspace-title,
  .shell:not(.focus-mode) .workspace>.drawing-controls{flex:0 0 auto}
  .shell:not(.focus-mode) .workspace .artboard{
-  flex:0 1 auto;
-  width:min(100%,960px,calc(max(180px,100dvh - 350px) * var(--lab-canvas-ratio,1)));
+  flex:0 0 auto;
+  width:min(100%,960px,calc(max(120px,100dvh - 440px) * var(--lab-canvas-ratio,1)));
   max-width:100%;
   max-height:none;
   min-height:0;
