@@ -26,12 +26,13 @@ export function generateLegacySVG(d:StudioDocument):string {
    const i=y*cols+x,rand=randomAt(d.seed,i*17);
    if(rand>density)continue;
    const [px,py]=point((x+.5)*sx,(y+.5)*sy,i);
+   const cellOffset=mode==='dots'?(d.cellWave??0)*Math.sin(x*.65+y*.48+phase):0;
    const radial=Math.hypot(px-cx,py-cy)/Math.hypot(cx,cy);
    const size=Math.min(sx,sy)*exp*(g==='focalPoint'?1.65-radial:1);
    const angle=g==='parallelism'?45:g==='commonFate'?Math.atan2(py-cy,px-cx)*180/Math.PI:d.rotation+(d.cellRotation??0)*Math.sin(i*.4);
    if(mode==='dots'){
     const localPhase=x/freq+y*.2+phase;const variation=undulation*Math.sin(localPhase)+noise*(randomAt(d.seed,i*31+3)*2-1);const localSize=size*(1+.55*noise*(randomAt(d.seed,i*29+9)*2-1));const r=clamp(localSize*(.08+.34*(.5+.5*variation))*(.35+amp/100),.4,Math.max(sx,sy)*3);
-    parts.push('<circle cx="'+px+'" cy="'+py+'" r="'+r+'" fill="'+ink+'"/>');
+    parts.push('<circle cx="'+px+'" cy="'+(py+cellOffset)+'" r="'+r+'" fill="'+ink+'"/>');
    }else{
     const kind:ModuleKind=g==='similarity'||g==='praegnanz'?'circle':mode==='mosaic'?(['square','triangle','quarter','checker','diamond'] as ModuleKind[])[Math.floor(randomAt(d.seed,i*7)*5)]:kinds[Math.floor(randomAt(d.seed,i*7)*kinds.length)];
     parts.push(shape(kind,px-size/2,py-size/2,size,angle));
