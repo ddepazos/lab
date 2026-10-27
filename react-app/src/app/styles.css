@@ -229,3 +229,15 @@
  .shell .properties button{padding:5px 7px;font-size:11px}
  .shell .workspace{min-height:calc(100dvh - 160px)}
 }
+
+/* LAB lower contextual dock · 2026-10-27 */
+.shell .artboard,.shell .artboard-base,.shell .artboard-ink{border-radius:0!important}
+.shell .lab-bottom-dock{display:flex;flex-wrap:wrap;gap:5px;width:100%;min-height:44px;padding:5px;background:#1b1b1e;border:1px solid #38383d;align-items:center}
+.shell .lab-bottom-dock button{font-size:11px;padding:7px 9px;background:transparent}
+.shell .lab-bottom-dock button[aria-expanded="true"]{border-color:#ff6900;color:#ff9a54;background:#3c2a20}
+.shell .lab-bottom-panel{width:100%;min-width:0;background:#1c1c1f;border:1px solid #38383d;max-height:min(50vh,440px);overflow:auto;resize:vertical}
+.shell .lab-bottom-panel-head{position:sticky;top:0;z-index:4;display:flex;align-items:center;justify-content:space-between;padding:5px 9px;background:#222225;border-bottom:1px solid #38383d;font-size:12px}
+.shell .lab-bottom-panel-head button{padding:3px 7px}
+.shell .lab-bottom-panel-content{padding:9px;min-width:0}
+.shell .lab-bottom-panel-content .video-export,.shell .lab-bottom-panel-content .timeline-panel{margin:0}
+@media(max-width:650px){.shell .lab-bottom-dock button{font-size:10px;padding:6px}.shell .lab-bottom-panel{max-height:55vh}}
