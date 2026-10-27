@@ -32,3 +32,12 @@ Los cambios de CSS del editor provocaron conflictos de proporción del lienzo; P
 
 ## Pendiente
 Verificar los workflows del último commit; inspeccionar fallos y corregir solo causas verificadas. Validar visualmente 16:9, 9:16, A4 y personalización; probar reproducción continua y exportación antes de declarar LAB estable. No se ha realizado refactor total ni migración a Web Workers.
+
+
+## Verificación de publicación Cloudflare Pages (27-10-2026)
+- Proyecto: `lab-studio`; dominio: https://lab-studio-asl.pages.dev/
+- **Confirmado por API de Cloudflare:** despliegue de producción `b323437be401293a7a4888a5a91c45fbe901a064` con estado `success`; URL inmutable https://6616ed9e.lab-studio-asl.pages.dev
+- Los commits de código `7b08194d` (ajuste Flexbox), `362786a9` (reloj independiente) y `74332a16` (TimelinePanel usa el reloj) también figuran como despliegues de producción exitosos.
+- GitHub Actions para `74332a16`: Web CI **success**, React UI checks **success**, Browser Smoke Test **failure**. No afirmar que el navegador funciona sin errores ni que la regresión del lienzo quedó resuelta.
+- La documentación en `docs/` no se presenta como controles nuevos en la interfaz. La compartimentación del reloj es un cambio interno: no se espera un botón o panel nuevo.
+- **Siguiente paso obligatorio:** inspeccionar el fallo de Browser Smoke Test y corregirlo con prueba de regresión antes de mover más funciones. Mantener lápiz, lienzos y 3D intactos.
