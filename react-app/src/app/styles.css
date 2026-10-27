@@ -474,3 +474,29 @@ body{background:var(--lab-bg);color:var(--lab-ink)}
  .shell .lab-persistent-timeline{position:relative;max-height:200px;overflow-y:auto}
  .shell .lab-bottom-dock{min-height:30px}
 }
+
+/* Repair 16:9 / custom artboard sizing after the compact timeline layout.
+   Preserve the aspect-ratio supplied by React; do not stretch the canvas
+   to a square or allow the SVG to become a tiny centered thumbnail. */
+@media(min-width:651px){
+ .shell:not(.focus-mode) .workspace .artboard{
+  flex:0 1 auto;
+  width:min(100%,calc((100dvh - 355px) * 1.25),960px);
+  height:auto;
+  min-height:0;
+  max-height:calc(100dvh - 355px);
+  aspect-ratio:unset;
+  align-self:center;
+ }
+ .shell:not(.focus-mode) .workspace .artboard-base,
+ .shell:not(.focus-mode) .workspace .artboard-ink{
+  width:100%;
+  height:100%;
+ }
+ .shell:not(.focus-mode) .workspace .artboard-base>svg{
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:100%;
+ }
+}
