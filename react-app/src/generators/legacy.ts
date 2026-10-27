@@ -8,6 +8,7 @@ export function generateLegacySVG(d:StudioDocument):string {
  const mode=d.generator??'mosaic',g=d.gestalt??'none',ink=d.foreground;
  const n=clamp(Math.round(d.columns??8),2,35),rows=clamp(Math.round(d.rows??8),2,35);
  const amp=clamp(d.waveAmplitude??48,0,150),freq=clamp(d.waveFrequency??4,.1,20);
+ const undulation=clamp((d.waveUndulation??100)/100,0,1);
  const noise=clamp((d.waveNoise??25)/100,0,1),exp=clamp((d.expand??100)/100,.4,6);
  const density=clamp((d.density??85)/100,0,1),phase=(d.cellRotation??0)*Math.PI/180;
  const parts:string[]=[];const cx=w/2,cy=h/2;
@@ -29,7 +30,7 @@ export function generateLegacySVG(d:StudioDocument):string {
    const size=Math.min(sx,sy)*exp*(g==='focalPoint'?1.65-radial:1);
    const angle=g==='parallelism'?45:g==='commonFate'?Math.atan2(py-cy,px-cx)*180/Math.PI:d.rotation+(d.cellRotation??0)*Math.sin(i*.4);
    if(mode==='dots'){
-    const localPhase=x/freq+y*.2+phase;const variation=Math.sin(localPhase)+noise*(randomAt(d.seed,i*31+3)*2-1);const localSize=size*(1+.55*noise*(randomAt(d.seed,i*29+9)*2-1));const r=clamp(localSize*(.08+.34*(.5+.5*variation))*(.35+amp/100),.4,Math.max(sx,sy)*3);
+    const localPhase=x/freq+y*.2+phase;const variation=undulation*Math.sin(localPhase)+noise*(randomAt(d.seed,i*31+3)*2-1);const localSize=size*(1+.55*noise*(randomAt(d.seed,i*29+9)*2-1));const r=clamp(localSize*(.08+.34*(.5+.5*variation))*(.35+amp/100),.4,Math.max(sx,sy)*3);
     parts.push('<circle cx="'+px+'" cy="'+py+'" r="'+r+'" fill="'+ink+'"/>');
    }else{
     const kind:ModuleKind=g==='similarity'||g==='praegnanz'?'circle':mode==='mosaic'?(['square','triangle','quarter','checker','diamond'] as ModuleKind[])[Math.floor(randomAt(d.seed,i*7)*5)]:kinds[Math.floor(randomAt(d.seed,i*7)*kinds.length)];
@@ -42,7 +43,7 @@ export function generateLegacySVG(d:StudioDocument):string {
    let path='';
    for(let j=0;j<=steps;j++){
     const t=j/steps,theta=t*Math.PI*2*freq+arm*2*Math.PI/count+phase;
-    const radius=t*Math.min(w,h)*.44*exp+Math.sin(theta*3+arm)*noise*amp;
+    const radius=t*Math.min(w,h)*.44*exp+Math.sin(theta*3+arm)*noise*amp*undulation;
     const x=cx+Math.cos(theta)*radius,y=cy+Math.sin(theta)*radius;
     const [px,py]=point(x,y,arm);
     path+=(j?' L':'M')+px.toFixed(2)+' '+py.toFixed(2);
@@ -55,7 +56,7 @@ export function generateLegacySVG(d:StudioDocument):string {
    let path='';
    for(let j=0;j<=steps;j++){
     const t=j/steps,x=t*w;
-    const wave=Math.sin(t*freq*Math.PI*2+line*.17+phase)*amp*exp;
+    const wave=Math.sin(t*freq*Math.PI*2+line*.17+phase)*amp*exp*undulation;
     const drift=Math.sin(t*freq*Math.PI*3+line*.33+d.seed)*noise*amp;
     const y=(line+.5)*h/count+wave+drift;
     const [px,py]=point(x,y,line);
