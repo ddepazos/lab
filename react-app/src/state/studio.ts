@@ -1,3 +1,4 @@
+import type {Timeline} from '../animation/timeline';
 import {create} from 'zustand';
 import type {StudioDocument,ModuleKind} from '../document/types';
 import type {Layer} from '../document/layers';
@@ -31,12 +32,19 @@ export const useStudio=create<StudioState>((set)=>({
  reset:()=>set({doc:{...initialDocument,active:[...initialDocument.active]},layers:makeLayers(),selectedLayer:'pattern-1'})
 }));
 
-type HistorySnapshot=Pick<StudioState,'doc'|'layers'|'selectedLayer'>;
+type HistorySnapshot=Pick<StudioState,'doc'|'layers'|'selectedLayer'>&{timeline?:Timeline};
+let timelineHistory:{read:()=>Timeline;write:(timeline:Timeline)=>void}|null=null;
+export function connectStudioTimelineHistory(read:()=>Timeline,write:(timeline:Timeline)=>void){const connection={read,write};timelineHistory=connection;return()=>{if(timelineHistory===connection)timelineHistory=null;};}
 const historyPast:HistorySnapshot[]=[];
 const historyFuture:HistorySnapshot[]=[];
 let restoring=false;
-const snapshot=(state:StudioState):HistorySnapshot=>({doc:structuredClone(state.doc),layers:structuredClone(state.layers),selectedLayer:state.selectedLayer});
+let gestureStart:HistorySnapshot|null=null;
+let gestureChanged=false;
+export function beginStudioGesture(){if(!gestureStart){gestureStart=snapshot(useStudio.getState());gestureChanged=false;}}
+export function endStudioGesture(){if(!gestureStart)return;if(!gestureChanged){gestureStart=null;return;}historyPast.push(gestureStart);if(historyPast.length>60)historyPast.shift();historyFuture.length=0;gestureStart=null;}
+const snapshot=(state:StudioState):HistorySnapshot=>({doc:structuredClone(state.doc),layers:structuredClone(state.layers),selectedLayer:state.selectedLayer,...(timelineHistory?{timeline:structuredClone(timelineHistory.read())}:{})});
 useStudio.subscribe((state,previous)=>{
+ if(gestureStart){if(state.doc!==previous.doc||state.layers!==previous.layers)gestureChanged=true;return;}
  if(restoring||state.doc===previous.doc&&state.layers===previous.layers)return;
  historyPast.push(snapshot(previous));
  if(historyPast.length>60)historyPast.shift();
@@ -46,13 +54,13 @@ useStudio.setState({
  undo:()=>{
   const previous=historyPast.pop();if(!previous)return;
   restoring=true;historyFuture.push(snapshot(useStudio.getState()));
-  useStudio.setState({...previous,historyVersion:useStudio.getState().historyVersion+1});
+  const {timeline,...state}=previous;useStudio.setState({...state,historyVersion:useStudio.getState().historyVersion+1});if(timeline)timelineHistory?.write(timeline);
   restoring=false;
  },
  redo:()=>{
   const next=historyFuture.pop();if(!next)return;
   restoring=true;historyPast.push(snapshot(useStudio.getState()));
-  useStudio.setState({...next,historyVersion:useStudio.getState().historyVersion+1});
+  const {timeline,...state}=next;useStudio.setState({...state,historyVersion:useStudio.getState().historyVersion+1});if(timeline)timelineHistory?.write(timeline);
   restoring=false;
  }
 });
