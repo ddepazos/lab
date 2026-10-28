@@ -39,10 +39,12 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
   const resize=()=>{const width=Math.max(1,host.clientWidth),height=Math.max(1,host.clientHeight);camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height,false)};
   const observer=new ResizeObserver(resize);observer.observe(host);resize();
   let frame=0,last=0,exporting=false,elapsed=0;
+  let exportSize:{width:number;height:number}|null=null;
   const animate=(seconds:number,state:OverlaySettings)=>{animateObjectSurface(mesh,seconds);if(model)animateObjectSurface(model,seconds);const phase=(seconds-(state.motionStart??0))*2*Math.PI/Math.max(.2,state.motionDuration??3);const intensity=Math.max(0,Math.min(2,(state.motionIntensity??50)/100));const wave=Math.sin(phase);const motion=state.motion??'rotation';const scale=state.scale*(motion==='pulse'?1+intensity*.35*(1-wave)/2:1);mesh.scale.setScalar(scale);if(model)model.scale.setScalar(scale*modelBaseScale);const opacity=state.opacity/100*(motion==='blink'?(wave>=0?1:0.04):1);material.opacity=opacity;mesh.position.set(0,0,0);if(model)model.position.y=0;mesh.rotation.set(0,0,0);if(model)model.rotation.set(0,0,0);if(motion==='rotation'){mesh.rotation[state.direction]=seconds*state.speed;if(model)model.rotation[state.direction]=seconds*state.speed;}if(motion==='bounce'||motion==='float'){const y=motion==='bounce'?Math.abs(wave)*intensity:wave*intensity*.5;mesh.position.y=y;if(model)model.position.y=y;}if(motion==='swing'){mesh.rotation.z=wave*intensity*.6;if(model)model.rotation.z=wave*intensity*.6;}if(motion==='drift'){mesh.position.x=wave*intensity;if(model)model.position.x=wave*intensity;}};
 
-  const renderAt=(event:Event)=>{const t=(event as CustomEvent<{time:number}>).detail.time;exporting=true;const state=settingsRef.current;mesh.geometry=meshes[state.kind];updateMaterial(state);animate(t,state);renderer.render(scene,camera)};
-  const resume=()=>{exporting=false;last=0};
+  const renderAt=(event:Event)=>{const detail=(event as CustomEvent<{time:number;width?:number;height?:number}>).detail;const t=detail.time;exporting=true;
+   if(detail.width&&detail.height){const width=Math.max(1,Math.round(detail.width)),height=Math.max(1,Math.round(detail.height));if(!exportSize||exportSize.width!==width||exportSize.height!==height){exportSize={width,height};renderer.setPixelRatio(1);renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();}}const state=settingsRef.current;mesh.geometry=meshes[state.kind];updateMaterial(state);animate(t,state);renderer.render(scene,camera)};
+  const resume=()=>{exporting=false;last=0;exportSize=null;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));resize()};
   window.addEventListener('lab:render-3d-frame',renderAt);
   window.addEventListener('lab:export-end',resume);
   const loop=(t:number)=>{
