@@ -63,6 +63,7 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
    const sourceWidth=vb&&vb.width>0?vb.width:Math.max(1,board.clientWidth);
    const sourceHeight=vb&&vb.height>0?vb.height:Math.max(1,board.clientHeight);
    const {width:exportWidth,height:exportHeight}=videoDimensions(resolution,sourceWidth,sourceHeight);
+   if(resolution===3840&&!(exportWidth===3840&&exportHeight===2160))setStatus('4K mantiene la proporción del proyecto: '+exportWidth+' × '+exportHeight);
    const canvas=document.createElement('canvas');canvas.width=exportWidth;canvas.height=exportHeight;
    const ctx=canvas.getContext('2d',{alpha:false});
    
@@ -88,7 +89,7 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
     if(previousImage)ctx.drawImage(previousImage,0,0,exportWidth,exportHeight);
     else throw new Error('No se pudo componer el fondo SVG');
     await drawImportedImages(ctx,svg,exportWidth,exportHeight);
-    window.dispatchEvent(new CustomEvent('lab:render-3d-frame',{detail:{time:t}}));
+    window.dispatchEvent(new CustomEvent('lab:render-3d-frame',{detail:{time:t,width:exportWidth,height:exportHeight}}));
     const gl=board.querySelector<HTMLCanvasElement>('.overlay-3d canvas');
     if(gl)drawCanvas(ctx,gl,board,exportWidth,exportHeight);
     board.querySelectorAll<HTMLCanvasElement>('.konva-text-overlay .konvajs-content canvas').forEach(c=>drawCanvas(ctx,c,board,exportWidth,exportHeight));
@@ -115,5 +116,5 @@ export function VideoExport({artboardSelector,duration,onTimeChange,onComplete,o
   }catch(error){console.error('LAB export',error);setStatus('Error: '+(error instanceof Error?error.message:String(error)))}
   finally{window.dispatchEvent(new Event('lab:export-end'));onComplete();onExportStateChange?.(false);setBusy(false)}
  };
- return <section className="video-export"><h2>Exportar animación</h2><label>Resolución<select value={resolution} disabled={busy} onChange={e=>setResolution(Number(e.target.value))}><option value={800}>800 px · lado mayor</option><option value={1080}>1080 px · lado mayor</option><option value={2160}>2160 px · lado mayor</option></select></label><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><div className="lab-download-menu"><button type="button" aria-haspopup="true" aria-expanded={menuOpen} disabled={busy} onClick={()=>setMenuOpen(value=>!value)}>{busy?'Renderizando…':'↓ Exportar video ▾'}</button>{menuOpen&&!busy&&<div className="lab-download-options" role="group" aria-label="Tipos de descarga"><button type="button" onClick={()=>{setMenuOpen(false);void record('mp4')}}>Descargar MP4 · H.264</button><button type="button" onClick={()=>{setMenuOpen(false);void record('webm')}}>Descargar WebM · VP9</button></div>}</div><p role="status" className="note">{status||'Renderiza cada fotograma con tiempos exactos e incluye las capas 2D y 3D.'}</p></section>;
+ return <section className="video-export"><h2>Exportar animación</h2><label>Resolución<select value={resolution} disabled={busy} onChange={e=>setResolution(Number(e.target.value))}><option value={800}>800 px · lado mayor</option><option value={1080}>1080 px · lado mayor</option><option value={2160}>2160 px · lado mayor</option><option value={3840}>3840 px · 4K UHD (16:9)</option></select></label><label>FPS<select value={fps} disabled={busy} onChange={e=>setFps(Number(e.target.value))}><option value={24}>24 FPS</option><option value={30}>30 FPS</option></select></label><div className="lab-download-menu"><button type="button" aria-haspopup="true" aria-expanded={menuOpen} disabled={busy} onClick={()=>setMenuOpen(value=>!value)}>{busy?'Renderizando…':'↓ Exportar video ▾'}</button>{menuOpen&&!busy&&<div className="lab-download-options" role="group" aria-label="Tipos de descarga"><button type="button" onClick={()=>{setMenuOpen(false);void record('mp4')}}>Descargar MP4 · H.264</button><button type="button" onClick={()=>{setMenuOpen(false);void record('webm')}}>Descargar WebM · VP9</button></div>}</div><p role="status" className="note">{status||'Renderiza cada fotograma con tiempos exactos e incluye las capas 2D y 3D.'}</p></section>;
 }
