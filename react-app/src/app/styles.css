@@ -497,3 +497,9 @@ body{background:var(--lab-bg);color:var(--lab-ink)}
  .shell:not(.focus-mode) .properties{position:static;grid-column:2;grid-row:3;width:100%;max-height:none;border-radius:0;box-shadow:none}
  .shell:not(.focus-mode) .lab-toolrail{grid-column:1;grid-row:1 / span 3}
 }
+
+/* Contextual controls stay inside the selected layer inspector. */
+.layer-properties {min-width:0;display:grid;gap:10px;}
+.layer-properties .pattern-controls,.layer-properties .animation-presets {min-width:0;max-width:100%;}
+.layer-properties input,.layer-properties select {max-width:100%;min-width:0;}
+.layer-properties h3 {margin:12px 0 6px;}
