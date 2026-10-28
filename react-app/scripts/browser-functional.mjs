@@ -19,6 +19,45 @@ await check('timeline-scrub-updates-artwork',async()=>{const range=page.getByRol
 await check('timeline-playback-advances',async()=>{const time=page.getByRole('slider',{name:'Tiempo de animación'});await time.fill('0');await page.getByRole('button',{name:/Reproducir/}).first().click();await page.waitForTimeout(650);const elapsed=Number(await time.inputValue());assert(elapsed>.05,'playback did not advance timeline');await page.getByRole('button',{name:/Pausar/}).first().click();});
 await check('timeline-zoom-and-layout',async()=>{const zoom=page.getByRole('button',{name:'Acercar pistas'});await zoom.click();assert(await page.locator('.lab-timeline-zoom output').innerText()==='125%');const lanes=page.locator('.lab-track-lanes');assert(await lanes.isVisible());const bounds=await lanes.boundingBox();assert(bounds&&bounds.x>=0&&bounds.x+bounds.width<=1441,'timeline overflows viewport');const inspector=page.locator('.properties').first();if(await inspector.isVisible()){const rect=await inspector.boundingBox();assert(rect&&rect.x>=0&&rect.x+rect.width<=1441,'inspector overflows viewport');}});
 await check('3d-scene',async()=>{await page.getByRole('button',{name:'Editor 3D'}).first().click();await page.locator('.scene3d-canvas canvas').waitFor({state:'visible',timeout:15000});const objects=page.getByLabel('Objetos de la escena');await objects.getByText(/Objetos 3D/).waitFor();assert(await objects.getByRole('button',{name:/Nudo toroidal/}).count()>0);await page.locator('.scene3d-bar select').first().selectOption('box');await objects.getByRole('button',{name:/Cubo/}).waitFor();});
+await check('3d-session-survives-editor-switch',async()=>{
+ const scene=page.locator('.scene3d');
+ await scene.getByRole('button',{name:/Pausar/}).click();
+ await scene.getByLabel('position x',{exact:true}).fill('2');
+ await page.getByRole('button',{name:'Editor 2D',exact:true}).click();
+ assert.equal(await scene.isVisible(),false,'3D scene remains visible in 2D');
+ await page.getByRole('button',{name:'Editor 3D',exact:true}).click();
+ await scene.getByRole('button',{name:/Cubo/,exact:false}).waitFor();
+ assert.equal(await scene.getByLabel('position x',{exact:true}).inputValue(),'2','object transform was lost');
+ assert.equal(await scene.getByRole('button',{name:/Animar/}).count(),1,'pause state was lost');
+});
+await check('3d-paused-seek-and-reset',async()=>{
+ const scene=page.locator('.scene3d');
+ await scene.getByLabel('Animación 3D',{exact:true}).selectOption('spin');
+ const time=scene.getByRole('slider',{name:'Tiempo de animación 3D',exact:true});
+ const rotation=scene.getByLabel('rotation y',{exact:true});
+ await time.fill('0');await page.waitForTimeout(100);
+ const start=Number(await rotation.inputValue());
+ await time.fill('0.5');await page.waitForTimeout(100);
+ assert(Math.abs(Number(await rotation.inputValue())-start)>20,'paused seeking did not update 3D rotation');
+ await scene.getByRole('button',{name:'↺ Inicio',exact:true}).click();
+ await page.waitForTimeout(100);
+ assert(Math.abs(Number(await rotation.inputValue())-start)<.1,'reset did not restore the first frame');
+ await scene.getByLabel('Animación 3D',{exact:true}).selectOption('spin-x');
+ await time.fill('0.5');await page.waitForTimeout(100);
+ assert(Number(await scene.getByLabel('rotation x',{exact:true}).inputValue())>20,'lateral motion did not rotate X');
+ assert(Math.abs(Number(await scene.getByLabel('rotation z',{exact:true}).inputValue()))<.1,'lateral motion duplicated Z motion');
+});
+await check('narrow-inspector-does-not-cover-editor',async()=>{
+ await page.setViewportSize({width:900,height:700});
+ await page.getByRole('button',{name:'Editor 2D',exact:true}).click();
+ const art=await page.locator('.workspace').boundingBox();
+ const inspector=await page.locator('.properties').boundingBox();
+ assert(art&&inspector,'missing editor panels');
+ assert(inspector.y>=art.y+art.height-1,'inspector overlaps workspace');
+ assert(inspector.x>=0&&inspector.x+inspector.width<=901,'inspector exceeds viewport');
+ await page.setViewportSize({width:1440,height:900});
+ await page.getByRole('button',{name:'Editor 3D',exact:true}).click();
+});
 await check('3d-animation-controls',async()=>{const scene=page.locator('.scene3d');assert(await scene.isVisible());assert(await scene.locator('canvas').count()>0);await page.waitForTimeout(500);});
 assert.deepEqual(errors,[],'uncaught browser errors');
 await page.screenshot({path:'test-results/lab-functional.png',fullPage:true});
