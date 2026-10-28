@@ -503,3 +503,29 @@ body{background:var(--lab-bg);color:var(--lab-ink)}
 .layer-properties .pattern-controls,.layer-properties .animation-presets {min-width:0;max-width:100%;}
 .layer-properties input,.layer-properties select {max-width:100%;min-width:0;}
 .layer-properties h3 {margin:12px 0 6px;}
+
+/* Interface preferences affect editor chrome, never artwork colors. */
+.lab-interface-dialog{width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 40px);overflow:auto;border:1px solid #666;border-radius:12px;padding:22px;color:#eee;background:#25272b;box-shadow:0 20px 80px #0008;color-scheme:dark}
+.lab-interface-dialog::backdrop{background:#0009}
+.lab-interface-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.lab-interface-heading h2{margin:0;font-size:20px}
+.lab-interface-dialog label{display:grid;gap:8px;margin:20px 0;font-size:14px}
+.lab-interface-dialog select{width:100%;padding:10px;background:#34363c;color:#f8f8f8;border:1px solid #777;border-radius:5px}
+.lab-interface-actions{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;margin-top:24px}
+.shell[data-theme=light]{--lab-bg:#d9dde3;--lab-surface:#f6f7f9;--lab-surface-raised:#ffffff;--lab-surface-hover:#ffe5ce;--lab-stroke:#aab0ba;--lab-stroke-soft:#c4c8ce;--lab-ink:#20242b;--lab-ink-muted:#4c5562;--lab-ink-subtle:#626b78;--lab-accent:#b6520b;background:#f1f2f4;color:#20242b;color-scheme:light}
+.shell[data-theme=light] :is(.lab-menubar,header,.library,.properties,.lab-toolrail,.timeline-panel,.lab-bottom-dock,.lab-bottom-panel,.drawing-controls,.lab-author-credit,.lab-menu-popover){background:#f6f7f9;color:#20242b;border-color:#c4c8ce}
+.shell[data-theme=light] .workspace{background:#d9dde3}
+.shell[data-theme=light] :is(button,select,textarea,input[type=number],input[type=text],.layer-properties input:not([type])){background:#fff;color:#252a32;border-color:#aab0ba}
+.shell[data-theme=light] :is(button:hover,.tile.selected,.layer-item.current){background:#ffe5ce;border-color:#bf5400;color:#20242b}
+.shell[data-theme=light] :is(label,p,small,.note,.workspace-title,.footer-controls,.lab-menubar-label,.properties output){color:#4c5562}
+.shell[data-theme=light] :is(.lab-track-bar,.lab-track-lane,.lab-track-name,.lab-track-region){background:#e3e7ed;color:#29323c;border-color:#b5bdc7}
+.shell[data-theme=light] .lab-interface-dialog{background:#f6f7f9;color:#20242b;color-scheme:light}
+@media(min-width:1101px){
+ .shell[data-layout=comfortable]:not(.focus-mode) main{grid-template-columns:48px minmax(200px,260px) minmax(0,1fr) minmax(280px,330px)}
+ .shell[data-layout=comfortable].hide-library:not(.focus-mode) main{grid-template-columns:48px minmax(0,1fr) minmax(280px,330px)}
+ .shell[data-layout=comfortable].hide-properties:not(.focus-mode) main{grid-template-columns:48px minmax(200px,260px) minmax(0,1fr)}
+ .shell[data-layout=comfortable].hide-library.hide-properties:not(.focus-mode) main{grid-template-columns:48px minmax(0,1fr)}
+ .shell[data-layout=comfortable] :is(.properties,.library){padding:18px}
+ .shell[data-layout=comfortable] .properties label{font-size:13px;margin:14px 0}
+ .shell[data-layout=comfortable] .properties :is(button,select,input[type=number]){min-height:32px;font-size:12px}
+}
