@@ -1,0 +1,32 @@
+# LAB Vintage Luxury Coupe materials
+newmtl burgundy
+Kd 0.23 0.018 0.038
+Ks 0.25 0.25 0.25
+Ns 65
+newmtl wine
+Kd 0.39 0.035 0.065
+Ks 0.25 0.25 0.25
+Ns 65
+newmtl chrome
+Kd 0.76 0.79 0.83
+Ks 0.9 0.9 0.9
+Ns 180
+newmtl gold
+Kd 0.79 0.59 0.22
+Ks 0.75 0.7 0.5
+Ns 160
+newmtl glass
+Kd 0.055 0.13 0.19
+Ks 0.7 0.7 0.7
+Ns 180
+d 0.78
+newmtl black
+Kd 0.018 0.019 0.022
+newmtl rubber
+Kd 0.025 0.025 0.029
+newmtl ivory
+Kd 0.91 0.83 0.64
+newmtl lamp
+Kd 0.91 0.89 0.70
+newmtl red
+Kd 0.64 0.025 0.035
