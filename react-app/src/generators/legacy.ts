@@ -17,7 +17,7 @@ export function generateLegacySVG(d:StudioDocument):string {
   if(g==='proximity'){xx+=Math.sin(Math.floor(i/3)*2)*w/n*.14;yy+=Math.cos(Math.floor(i/3)*2)*h/rows*.14;}
   if(g==='focalPoint'){const t=clamp(1-Math.hypot(x-cx,y-cy)/Math.hypot(cx,cy),0,1);xx=cx+(xx-cx)*(1-.28*t);yy=cy+(yy-cy)*(1-.28*t);}
   return [xx,yy] as const;};
- const shape=(kind:ModuleKind,x:number,y:number,sz:number,angle=0)=>'<g transform="translate('+x+' '+y+') rotate('+angle+') scale('+sz/100+') translate(-50 -50)">'+geometry(kind,ink)+'</g>';
+ const shape=(kind:ModuleKind,x:number,y:number,sz:number,angle=0,color=ink)=>'<g transform="translate('+x+' '+y+') rotate('+angle+') scale('+sz/100+') translate(-50 -50)">'+geometry(kind,color)+'</g>';
  const kinds:ModuleKind[]=d.active.length?d.active:['circle','ring','square','triangle'];
  if(mode==='mosaic'||mode==='modules'||mode==='dots'){
   const cols=mode==='dots'?clamp(n*3,6,75):n,rr=mode==='dots'?clamp(rows*3,6,75):rows;
@@ -32,15 +32,16 @@ export function generateLegacySVG(d:StudioDocument):string {
    const angle=g==='parallelism'?45:g==='commonFate'?Math.atan2(py-cy,px-cx)*180/Math.PI:d.rotation+(d.cellRotation??0)*Math.sin(i*.4);
    if(mode==='dots'){
     const localPhase=x/freq+y*.2+phase;const variation=undulation*Math.sin(localPhase)+noise*(randomAt(d.seed,i*31+3)*2-1);const localSize=size*(1+.55*noise*(randomAt(d.seed,i*29+9)*2-1));const r=clamp(localSize*(.08+.34*(.5+.5*variation))*(.35+amp/100),.4,Math.max(sx,sy)*3);
-    parts.push('<circle cx="'+px+'" cy="'+(py+cellOffset)+'" r="'+r+'" fill="'+ink+'"/>');
+    parts.push('<circle cx="'+px+'" cy="'+(py+cellOffset)+'" r="'+r+'" fill="'+(d.palette?.length?d.palette[i%d.palette.length]:ink)+'"/>');
    }else{
     const kind:ModuleKind=g==='similarity'||g==='praegnanz'?'circle':mode==='mosaic'?(['square','triangle','quarter','checker','diamond'] as ModuleKind[])[Math.floor(randomAt(d.seed,i*7)*5)]:kinds[Math.floor(randomAt(d.seed,i*7)*kinds.length)];
-    parts.push(shape(kind,px-size/2,py-size/2,size,angle));
+    parts.push(shape(kind,px-size/2,py-size/2,size,angle,d.palette?.length?d.palette[Math.floor(randomAt(d.seed,i*19+11)*d.palette.length)]:ink));
    }
   }
  }else if(mode==='spiral'){
   const count=clamp(n,2,30),steps=260;
   for(let arm=0;arm<count;arm++){
+   const ink=d.palette?.length?d.palette[arm%d.palette.length]:d.foreground;
    let path='';
    for(let j=0;j<=steps;j++){
     const t=j/steps,theta=t*Math.PI*2*freq+arm*2*Math.PI/count+phase;
@@ -54,6 +55,7 @@ export function generateLegacySVG(d:StudioDocument):string {
  }else if(mode==='flow'){
   const count=clamp(rows*4,8,90),steps=110;
   for(let line=0;line<count;line++){
+   const ink=d.palette?.length?d.palette[line%d.palette.length]:d.foreground;
    let path='';
    for(let j=0;j<=steps;j++){
     const t=j/steps,x=t*w;
