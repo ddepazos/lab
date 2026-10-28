@@ -14,6 +14,9 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
   renderer.setClearColor(0x000000,0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
   host.appendChild(renderer.domElement);
+  // The composition overlay may inherit pointer-events:none from its CSS parent.
+  // Re-enable hit testing on the WebGL canvas so the imported model can be dragged.
+  host.style.pointerEvents='auto';renderer.domElement.style.pointerEvents='auto';
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(42,1,.1,100);camera.position.set(0,0,6);
   const placement=new THREE.Group();scene.add(placement);
@@ -54,5 +57,5 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
   frame=requestAnimationFrame(loop);
   return ()=>{window.removeEventListener('lab:render-3d-frame',renderAt);window.removeEventListener('lab:export-end',resume);cancelAnimationFrame(frame);observer.disconnect();loadId++;if(model){scene.remove(model);disposeSceneObject(model);}rotationGroup.remove(mesh);renderer.domElement.removeEventListener('pointerdown',onPointerDown);renderer.domElement.removeEventListener('pointermove',onPointerMove);renderer.domElement.removeEventListener('pointerup',onPointerUp);renderer.domElement.removeEventListener('pointercancel',onPointerUp);Object.values(meshes).forEach(g=>g.dispose());disposeSurfaceMaterial(material);renderer.dispose();renderer.domElement.remove()};
  },[]);
- return <div ref={mount} className="overlay-3d" aria-label="Objeto tridimensional animado: arrastra con el mouse para moverlo" />;
+ return <div ref={mount} className="overlay-3d" style={{pointerEvents:'auto'}} aria-label="Objeto tridimensional animado: arrastra con el mouse para moverlo" />;
 }
