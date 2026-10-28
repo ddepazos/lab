@@ -32,7 +32,7 @@ await check('3d-session-survives-editor-switch',async()=>{
 });
 await check('3d-paused-seek-and-reset',async()=>{
  const scene=page.locator('.scene3d');
- await scene.getByLabel('Animación',{exact:true}).selectOption('spin');
+ await scene.getByLabel('Animación 3D',{exact:true}).selectOption('spin');
  const time=scene.getByRole('slider',{name:'Tiempo de animación 3D',exact:true});
  const rotation=scene.getByLabel('rotation y',{exact:true});
  await time.fill('0');await page.waitForTimeout(100);
@@ -42,7 +42,7 @@ await check('3d-paused-seek-and-reset',async()=>{
  await scene.getByRole('button',{name:'↺ Inicio',exact:true}).click();
  await page.waitForTimeout(100);
  assert(Math.abs(Number(await rotation.inputValue())-start)<.1,'reset did not restore the first frame');
- await scene.getByLabel('Animación',{exact:true}).selectOption('spin-x');
+ await scene.getByLabel('Animación 3D',{exact:true}).selectOption('spin-x');
  await time.fill('0.5');await page.waitForTimeout(100);
  assert(Number(await scene.getByLabel('rotation x',{exact:true}).inputValue())>20,'lateral motion did not rotate X');
  assert(Math.abs(Number(await scene.getByLabel('rotation z',{exact:true}).inputValue()))<.1,'lateral motion duplicated Z motion');
