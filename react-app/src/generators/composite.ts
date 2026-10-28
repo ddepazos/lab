@@ -35,7 +35,7 @@ export function composeSVG(background:string,layers:Layer[],fallback:StudioDocum
   if(l.type==='text')content=svgTextContent(l,fallback);
   if(l.type==='image'&&l.imageSrc&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(l.imageSrc))content=`<image href="${l.imageSrc}" x="${l.x??0}" y="${l.y??0}" width="${l.imageWidth??200}" height="${l.imageHeight??200}" preserveAspectRatio="xMidYMid meet"/>`;
   // Tile moving generative layers; keep static layers and all other tools unchanged.
-  const repeatMotion=l.type==='pattern'&&((l.x??0)!==0||(l.y??0)!==0);
+  const repeatMotion=l.type==='pattern'&&l.tileMotion!==false&&((l.x??0)!==0||(l.y??0)!==0);
   if(repeatMotion){
    const id=`lab-repeat-${index}`;
    const dx=((l.x??0)%width+width)%width;
@@ -47,7 +47,7 @@ export function composeSVG(background:string,layers:Layer[],fallback:StudioDocum
   const projection=l.projection==='isometric'?`translate(${width/2} ${height/2}) matrix(0.866 0.5 -0.866 0.5 0 0) translate(-${width/2} -${height/2})`:l.projection==='oblique'?`translate(${width/2} ${height/2}) matrix(1 0.18 -0.38 0.82 0 0) translate(-${width/2} -${height/2})`:'';
   const rotation=l.rotation??0;
   const scale=Math.max(.01,l.scale??1);
-  const transform=l.type==='image'?` transform="translate(${l.x??0} ${l.y??0}) scale(${scale}) translate(-${l.x??0} -${l.y??0})"`:l.type==='pattern'?` transform="${repeatMotion?'':`translate(${l.x??0} ${l.y??0}) `}translate(${width/2} ${height/2}) rotate(${rotation}) scale(${scale}) translate(-${width/2} -${height/2})"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
+  const transform=l.type==='image'?` transform="translate(${l.x??0} ${l.y??0}) rotate(${rotation}) scale(${scale}) translate(-${l.x??0} -${l.y??0})"`:l.type==='pattern'?` transform="${repeatMotion?'':`translate(${l.x??0} ${l.y??0}) `}translate(${width/2} ${height/2}) rotate(${rotation}) scale(${scale}) translate(-${width/2} -${height/2})"`:scale!==1?` transform="translate(${l.x??400} ${l.y??400}) scale(${scale}) translate(-${l.x??400} -${l.y??400})"`:'';
   return `<g${l.type==='pattern'||l.type==='image'?'':` transform="translate(${offsetX} ${offsetY}) scale(${factor})"`}><g${projection?` transform="${projection}"`:''}><g${transform} opacity="${l.opacity/100}" style="mix-blend-mode:${l.blend}">${content}</g></g></g>`;
  });
  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="${width}" height="${height}" fill="${escapeXml(background)}"/>${parts.join('')}</svg>`;
