@@ -16,11 +16,20 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
   host.appendChild(renderer.domElement);
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(42,1,.1,100);camera.position.set(0,0,6);
+  const placement=new THREE.Group();scene.add(placement);
+  const rotationGroup=new THREE.Group();placement.add(rotationGroup);
+  const raycaster=new THREE.Raycaster();const pointer=new THREE.Vector2();
+  let dragging=false,dragStartX=0,dragStartY=0,dragOriginX=0,dragOriginY=0;
+  const positionAt=(event:PointerEvent)=>{const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);return raycaster.ray.at(6/Math.max(.01,-raycaster.ray.direction.z),new THREE.Vector3());};
+  const onPointerDown=(event:PointerEvent)=>{if(event.button!==0)return;const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(model?[model]:[mesh],true);if(!hits.length)return;const p=positionAt(event);dragging=true;dragStartX=p.x;dragStartY=p.y;dragOriginX=placement.position.x;dragOriginY=placement.position.y;renderer.domElement.setPointerCapture(event.pointerId);renderer.domElement.style.cursor='grabbing';event.preventDefault();};
+  const onPointerMove=(event:PointerEvent)=>{if(!dragging)return;const p=positionAt(event);placement.position.x=dragOriginX+p.x-dragStartX;placement.position.y=dragOriginY+p.y-dragStartY;};
+  const onPointerUp=(event:PointerEvent)=>{if(!dragging)return;dragging=false;renderer.domElement.style.cursor='';if(renderer.domElement.hasPointerCapture(event.pointerId))renderer.domElement.releasePointerCapture(event.pointerId);};
+  renderer.domElement.style.touchAction='none';renderer.domElement.addEventListener('pointerdown',onPointerDown);renderer.domElement.addEventListener('pointermove',onPointerMove);renderer.domElement.addEventListener('pointerup',onPointerUp);renderer.domElement.addEventListener('pointercancel',onPointerUp);
   scene.add(new THREE.AmbientLight(0xffffff,1.8));
   const light=new THREE.DirectionalLight(0xffffff,3);light.position.set(3,4,5);scene.add(light);
   let material=createSurfaceMaterial({material:settingsRef.current.material,color:settingsRef.current.color,repeat:settingsRef.current.textureRepeat??1});material.transparent=true;
   const meshes=Object.fromEntries(geometryOptions.map(g=>[g.id,createGeometry(g.id)])) as Record<GeometryKind,THREE.BufferGeometry>;
-  const mesh=new THREE.Mesh(meshes[settingsRef.current.kind],material);scene.add(mesh);
+  const mesh=new THREE.Mesh(meshes[settingsRef.current.kind],material);rotationGroup.add(mesh);
   let model:THREE.Group|null=null;let materialKey='',modelMaterialKey='';let currentModelUrl='';let loadId=0;let modelBaseScale=1;
   const loader=new GLTFLoader();
   const updateMaterial=(state:OverlaySettings)=>{const appearance={material:state.material,color:state.color,repeat:state.textureRepeat??1};const key=JSON.stringify(appearance);if(key!==materialKey){disposeSurfaceMaterial(material);material=createSurfaceMaterial(appearance);material.transparent=true;mesh.material=material;materialKey=key;}if(model&&key!==modelMaterialKey){applyObjectAppearance(model,appearance);modelMaterialKey=key;}};
@@ -36,14 +45,14 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
   const loop=(t:number)=>{
    const s=settingsRef.current;
    if(mesh.geometry!==meshes[s.kind])mesh.geometry=meshes[s.kind];
-   if((s.modelUrl??'')!==currentModelUrl){currentModelUrl=s.modelUrl??'';const id=++loadId;if(model){scene.remove(model);disposeSceneObject(model);model=null;modelMaterialKey='';}mesh.visible=!currentModelUrl;if(currentModelUrl){loader.load(currentModelUrl,gltf=>{if(id!==loadId){disposeSceneObject(gltf.scene);return;}model=gltf.scene;modelMaterialKey='';const bounds=new THREE.Box3().setFromObject(model);const extent=bounds.getSize(new THREE.Vector3());const largest=Math.max(extent.x,extent.y,extent.z,.001);modelBaseScale=2.5/largest;model.scale.setScalar(modelBaseScale);const center=bounds.getCenter(new THREE.Vector3());model.position.copy(center).multiplyScalar(-2.5/largest);scene.add(model);},undefined,error=>console.error('No se pudo cargar GLB/GLTF',error))}}
+   if((s.modelUrl??'')!==currentModelUrl){currentModelUrl=s.modelUrl??'';const id=++loadId;if(model){rotationGroup.remove(model);disposeSceneObject(model);model=null;modelMaterialKey='';}mesh.visible=!currentModelUrl;if(currentModelUrl){loader.load(currentModelUrl,gltf=>{if(id!==loadId){disposeSceneObject(gltf.scene);return;}model=gltf.scene;modelMaterialKey='';const bounds=new THREE.Box3().setFromObject(model);const extent=bounds.getSize(new THREE.Vector3());const largest=Math.max(extent.x,extent.y,extent.z,.001);modelBaseScale=2.5/largest;model.scale.setScalar(modelBaseScale);const center=bounds.getCenter(new THREE.Vector3());model.position.copy(center).multiplyScalar(-2.5/largest);rotationGroup.add(model);},undefined,error=>console.error('No se pudo cargar GLB/GLTF',error))}}
    updateMaterial(s);if(!exporting&&last&&s.playing)elapsed+=Math.min(.05,(t-last)/1000)*s.speed;animate(elapsed,s);
    last=t;
    if(!exporting)renderer.render(scene,camera);
    frame=requestAnimationFrame(loop);
   };
   frame=requestAnimationFrame(loop);
-  return ()=>{window.removeEventListener('lab:render-3d-frame',renderAt);window.removeEventListener('lab:export-end',resume);cancelAnimationFrame(frame);observer.disconnect();loadId++;if(model){scene.remove(model);disposeSceneObject(model);}scene.remove(mesh);Object.values(meshes).forEach(g=>g.dispose());disposeSurfaceMaterial(material);renderer.dispose();renderer.domElement.remove()};
+  return ()=>{window.removeEventListener('lab:render-3d-frame',renderAt);window.removeEventListener('lab:export-end',resume);cancelAnimationFrame(frame);observer.disconnect();loadId++;if(model){scene.remove(model);disposeSceneObject(model);}rotationGroup.remove(mesh);renderer.domElement.removeEventListener('pointerdown',onPointerDown);renderer.domElement.removeEventListener('pointermove',onPointerMove);renderer.domElement.removeEventListener('pointerup',onPointerUp);renderer.domElement.removeEventListener('pointercancel',onPointerUp);Object.values(meshes).forEach(g=>g.dispose());disposeSurfaceMaterial(material);renderer.dispose();renderer.domElement.remove()};
  },[]);
- return <div ref={mount} className="overlay-3d" aria-label="Objeto tridimensional animado" />;
+ return <div ref={mount} className="overlay-3d" aria-label="Objeto tridimensional animado: arrastra con el mouse para moverlo" />;
 }
