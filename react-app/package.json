@@ -10,21 +10,22 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "konva": "^10.0.0",
+    "mediabunny": "^1.62.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "zustand": "^5.0.0",
-    "three": "^0.180.0",
-    "konva": "^10.0.0",
     "react-konva": "^19.0.0",
-    "mediabunny": "^1.62.0"
+    "three": "^0.180.0",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@types/node": "^22.20.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.180.0",
     "@vitejs/plugin-react": "^4.7.0",
     "typescript": "~5.9.0",
     "vite": "^7.0.0",
-    "vitest": "^3.0.0",
-    "@types/three": "^0.180.0"
+    "vitest": "^3.0.0"
   }
 }
