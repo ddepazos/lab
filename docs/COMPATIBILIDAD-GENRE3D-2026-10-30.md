@@ -21,3 +21,8 @@ Duplicación e independencia en UI, superposición de GLB animado sobre composic
 El manifiesto .lab.json sigue siendo metadatos; no es un proyecto de Studio. El recurso transferible es el .glb. Las escenas 3D no se han integrado al formato general de proyecto JSON en esta entrega.
 
 Consolidación de GENRE3D: https://github.com/ddepazos/LAB-GENRE3D/blob/main/docs/CONSOLIDACION-SUITE-2026-10-30.md
+
+## Actualización visual posterior
+La conexión Browser se recuperó. En una prueba nueva con el fixture de GENRE3D, se llevó el original al final, se duplicó y se llevó la copia al inicio. La copia queda recta en X=1 mientras el original permanece doblado; ambos figuran en jerarquía con su clip disponible. Duplicación independiente comprobada en UI. Continúa pendiente la superposición/exportación del modelo animado sobre 2D.
+
+![Original doblado y copia recta](evidence/genre3d-clone-independence-20261030.jpg)
