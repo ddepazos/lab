@@ -1,5 +1,5 @@
 /** Rasterize the SVG at its document aspect ratio, independent of CSS preview size. */
-export async function downloadPNG(svg:string,filename='LAB-composicion.png',size=1600,board?:HTMLElement|null):Promise<void>{
+export async function downloadPNG(svg:string,filename='LAB-composicion.png',size=1600,board?:HTMLElement|null,onReady?:(png:Blob)=>void):Promise<void>{
  const parsed=new DOMParser().parseFromString(svg,'image/svg+xml');
  const parserError=parsed.querySelector('parsererror');
  if(parserError||parsed.documentElement.localName!=='svg')throw new Error(`SVG inválido: ${parserError?.textContent?.trim().slice(0,180)??'raíz SVG ausente'}`);
@@ -47,6 +47,7 @@ export async function downloadPNG(svg:string,filename='LAB-composicion.png',size
    }
   }
   const png=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Error al exportar PNG')),'image/png'));
+  if(onReady){onReady(png);return;}
   const pngUrl=URL.createObjectURL(png);
   try{
    const link=document.createElement('a');
