@@ -60,7 +60,7 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
    frame=requestAnimationFrame(loop);
   };
   frame=requestAnimationFrame(loop);
-  return ()=>{window.removeEventListener('lab:render-3d-frame',renderAt);window.removeEventListener('lab:export-end',resume);cancelAnimationFrame(frame);observer.disconnect();loadId++;clipPlayer?.dispose();if(model){scene.remove(model);disposeSceneObject(model);}rotationGroup.remove(mesh);renderer.domElement.removeEventListener('pointerdown',onPointerDown);renderer.domElement.removeEventListener('pointermove',onPointerMove);renderer.domElement.removeEventListener('pointerup',onPointerUp);renderer.domElement.removeEventListener('pointercancel',onPointerUp);Object.values(meshes).forEach(g=>g.dispose());disposeSurfaceMaterial(material);renderer.dispose();renderer.domElement.remove()};
+  return ()=>{window.removeEventListener('lab:render-3d-frame',renderAt);window.removeEventListener('lab:export-end',resume);cancelAnimationFrame(frame);observer.disconnect();loadId++;clipPlayer?.dispose();if(model){scene.remove(model);disposeSceneObject(model);}rotationGroup.remove(mesh);renderer.domElement.removeEventListener('pointerdown',onPointerDown);renderer.domElement.removeEventListener('pointermove',onPointerMove);renderer.domElement.removeEventListener('pointerup',onPointerUp);renderer.domElement.removeEventListener('pointercancel',onPointerUp);Object.values(meshes).forEach(g=>g.dispose());disposeSurfaceMaterial(material);draco.dispose();renderer.dispose();renderer.domElement.remove()};
  },[]);
  return <div ref={mount} className="overlay-3d" style={{pointerEvents:'auto'}} aria-label="Objeto tridimensional animado: arrastra con el mouse para moverlo" />;
 }
