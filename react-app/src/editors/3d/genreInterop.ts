@@ -13,7 +13,7 @@ export function validateGenreManifest(source:string):GenreManifest{
  const m=value as Partial<GenreManifest>;
  if(m.schema!=='lab.creative-suite.asset'||m.version!==1||m.source!=='LAB GENRE3D'||m.target!=='LAB Studio')
   throw new Error('Esquema LAB GENRE3D v1 no reconocido');
- if(!m.asset||m.asset.format!=='glb'||m.asset.units!=='meters'||m.asset.upAxis!=='Y'||m.asset.handedness!=='right'||typeof m.asset.file!=='string'||!/^[^/\\\\]+\\.glb$/i.test(m.asset.file))
+ if(!m.asset||m.asset.format!=='glb'||m.asset.units!=='meters'||m.asset.upAxis!=='Y'||m.asset.handedness!=='right'||typeof m.asset.file!=='string'||m.asset.file.includes('/')||m.asset.file.includes('\\')||!m.asset.file.toLowerCase().endsWith('.glb'))
   throw new Error('Archivo GLB o sistema de coordenadas no válido');
  return m as GenreManifest;
 }
