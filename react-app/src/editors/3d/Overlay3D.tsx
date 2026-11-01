@@ -4,6 +4,8 @@ import type {GeometryKind,SurfaceKind} from './surfaces';
 import {useEffect,useRef} from 'react';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
+import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 export type OverlaySettings={kind:GeometryKind;material:SurfaceKind;textureRepeat?:number;modelUrl?:string;color:string;speed:number;scale:number;opacity:number;direction:'x'|'y'|'z';playing:boolean;motion?:'rotation'|'pulse'|'blink'|'bounce'|'float'|'swing'|'drift';motionDuration?:number;motionIntensity?:number;motionStart?:number};
 export function Overlay3D({settings}:{settings:OverlaySettings}){
  const mount=useRef<HTMLDivElement>(null),settingsRef=useRef(settings);
@@ -35,7 +37,7 @@ export function Overlay3D({settings}:{settings:OverlaySettings}){
   const meshes=Object.fromEntries(geometryOptions.map(g=>[g.id,createGeometry(g.id)])) as Record<GeometryKind,THREE.BufferGeometry>;
   const mesh=new THREE.Mesh(meshes[settingsRef.current.kind],material);rotationGroup.add(mesh);
   let clipPlayer:ReturnType<typeof importedClipPlayer>|undefined;let model:THREE.Group|null=null;let materialKey='',modelMaterialKey='';let currentModelUrl='';let loadId=0;let modelBaseScale=1;let modelCenter=new THREE.Vector3();
-  const loader=new GLTFLoader();
+  const loader=new GLTFLoader();const draco=new DRACOLoader();draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');draco.setWorkerLimit(2);loader.setDRACOLoader(draco);loader.setMeshoptDecoder(MeshoptDecoder);
   const updateMaterial=(state:OverlaySettings)=>{const appearance={material:state.material,color:state.color,repeat:state.textureRepeat??1};const key=JSON.stringify(appearance);if(key!==materialKey){disposeSurfaceMaterial(material);material=createSurfaceMaterial(appearance);material.transparent=true;mesh.material=material;materialKey=key;}if(model&&key!==modelMaterialKey){applyObjectAppearance(model,appearance);modelMaterialKey=key;}};
   const resize=()=>{const width=Math.max(1,host.clientWidth),height=Math.max(1,host.clientHeight);camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height,false)};
   const observer=new ResizeObserver(resize);observer.observe(host);resize();
