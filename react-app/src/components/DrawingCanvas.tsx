@@ -19,8 +19,8 @@ export function DrawingCanvas({strokes,setStrokes,enabled,eraser,color,width,bac
  return <div ref={holder} className="konva-overlay" style={{touchAction:enabled?'none':'auto',pointerEvents:enabled?'auto':'none'}}>
   <Stage width={size} height={size} onPointerDown={e=>{start(e.target.getStage()!,e.evt);(e.evt.target as Element)?.setPointerCapture?.(e.evt.pointerId)}} onPointerMove={e=>move(e.target.getStage()!,e.evt)} onPointerUp={stop} onPointerCancel={stop} onMouseUp={stop} onTouchEnd={stop} onMouseLeave={stop} onTouchCancel={stop}>
    <Layer listening={false}>{strokes.map((stroke,i)=>stroke.points.length===1?
-    <Circle key={i} x={stroke.points[0].x/800*size} y={stroke.points[0].y/800*size} radius={stroke.width/1600*size} fill={stroke.color}/>:
-    <Line key={i} points={stroke.points.flatMap(p=>[p.x/800*size,p.y/800*size])} stroke={stroke.color} strokeWidth={stroke.width/800*size} lineCap="round" lineJoin="round" tension={0}/>)}</Layer>
+    <Circle key={i} x={stroke.points[0].x/800*size} y={stroke.points[0].y/800*size} radius={widthFromPressure(stroke.pressures?.[0]??0.5,{minWidth:stroke.width*.3,maxWidth:stroke.width*1.7,smoothing:.35})/1600*size} fill={stroke.color}/>:
+    <>{stroke.points.slice(1).map((p,j)=><Line key={`${i}-${j}`} points={[stroke.points[j].x/800*size,stroke.points[j].y/800*size,p.x/800*size,p.y/800*size]} stroke={stroke.color} strokeWidth={widthFromPressure(stroke.pressures?.[j+1]??0.5,{minWidth:stroke.width*.3,maxWidth:stroke.width*1.7,smoothing:.35})/800*size} lineCap="round" lineJoin="round" />)}</>)}</Layer>
   </Stage>
  </div>
 }
